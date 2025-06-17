@@ -28,10 +28,16 @@ To get started with contributing, here’s a step-by-step guide for setting it u
 3. **Move** into the project directory:
    cd Screentime-recoder
 
-4. **Install dependencies** (if the project uses Node.js/React):
+4. **Move** in client directory:
+   cd client
+
+5. **Install dependencies** (if the project uses Node.js/React):
    npm install
 
-5. **Start the server**:
+6. **Move** to server directory:
+   cd server -- Assuming you are in root directory
+
+8. **Start the server**:
    npm start
 
 ---
@@ -58,7 +64,7 @@ Here’s a quick cheat sheet to help you navigate the project easily:
 Want to contribute? Awesome! Here's what to do:
 
 1. Head over to the Issues section: https://github.com/nst-sdc/Screentime-recoder/issues
-2. Pick any open issue — especially those tagged `good first issue`, `frontend`, or `documentation`.
+2. Pick any open issue — especially those tagged `good first issue`, `frontend`, `documentation` etc.
 3. Drop a comment like: "I'd love to take this up!" and wait until it gets assigned to you.
 
 4. Create your working branch:
