@@ -1,92 +1,81 @@
-# Contributing to ScreenTime Recorder
+# 🚀 Welcome to the Screentime-Recorder Contribution Guide
 
-Thank you for considering contributing to ScreenTime Recorder! 🎉  
-We welcome all kinds of contributions — from bug reports and feature requests to documentation improvements and pull requests.
+Hey awesome dev! 🙌  
+Whether you're reporting bugs, refining the UI, adding a cool feature, or just dropping suggestions — you’re helping shape this project into something amazing. Every bit of effort matters. Thanks for stopping by! 🧡
 
 ---
 
-## 📦 Project Setup
+## 📖 What’s This Project About?
 
-### 🖥️ Frontend (React.js)
-1. Navigate to the `client` folder:
-   cd client
+**Screentime-Recorder** is a desktop app (built with ❤️ for **Mac users**) that monitors how long you're using each application — essentially bringing the mobile "Screen Time" experience to your laptop. 💻📊
 
-2. Install dependencies:
+Its core goal?  
+**Empower users to track digital usage, manage time better, and boost productivity.**
+
+We’re a passionate group of 4 devs building this from the ground up. If you're ready to chip in, you're officially part of the crew now! 🛳️
+
+---
+
+## ⚙️ Local Project Setup
+
+To get started with contributing, here’s a step-by-step guide for setting it up locally:
+
+1. **Fork** this repository using the GitHub "Fork" button (top-right corner).
+
+2. **Clone** your fork:
+   git clone https://github.com/YOUR-USERNAME/Screentime-recoder.git
+
+3. **Move** into the project directory:
+   cd Screentime-recoder
+
+4. **Install dependencies** (if the project uses Node.js/React):
    npm install
 
-3. Start the development server:
+5. **Start the server**:
    npm start
 
-### 🛠️ Backend (Node.js)
-1. Navigate to the `server` folder:
-   cd server 
+---
 
-2. Install dependencies:
-   npm install
+## 📋 Quick Command Reference
 
-3. Start the server: 
-   npm run dev
+Here’s a quick cheat sheet to help you navigate the project easily:
 
-💡 Make sure MongoDB is running locally or update your `.env` file with the appropriate DB URI.
+| Action                        | Command                                       |
+|------------------------------|-----------------------------------------------|
+| Clone the repo               | git clone https://github.com/USERNAME/REPO   |
+| Navigate to folder           | cd Screentime-recoder                        |
+| Install dependencies         | npm install                                  |
+| Start the project            | npm start                                    |
+| Create a new branch          | git checkout -b your-branch-name             |
+| Stage your changes           | git add .                                    |
+| Commit your changes          | git commit -m "Your message"                 |
+| Push your branch             | git push origin your-branch-name             |
 
 ---
 
-## 🧹 Coding Conventions
+## 🌟 How to Contribute
 
-### 📁 Folder Structure
-- Organize code by features whenever possible.
+Want to contribute? Awesome! Here's what to do:
 
+1. Head over to the Issues section: https://github.com/nst-sdc/Screentime-recoder/issues
+2. Pick any open issue — especially those tagged `good first issue`, `frontend`, or `documentation`.
+3. Drop a comment like: "I'd love to take this up!" and wait until it gets assigned to you.
 
-## 🌿 Branch Naming
+4. Create your working branch:
+   git checkout -b your-branch-name
 
-Follow this pattern:  
-<type>/<short-description>
+5. Make the required changes and stage them:
+   git add .
 
-Examples:
-- feature/add-dark-mode
-- bugfix/fix-login-error
-- chore/update-readme
+6. Commit your changes with a meaningful message:
+   git commit -m "Add: Your Feature"
 
----
+7. Push your branch:
+   git push origin your-branch-name
 
-## ✏️ Commit Message Format
-
-Use the following prefixes for commits:
-- feat: New feature
-- fix: Bug fix
-- chore: Maintenance, refactor, etc.
-- docs: Documentation changes
-- test: Adding or updating tests
-- style: Formatting (tabs, spaces, etc.)
-
-Example:
-git commit -m "feat: implement dark mode toggle"
+8. Finally, open a Pull Request (PR) from your branch to the main branch, and link the related issue.
 
 ---
 
-## ✅ Pull Request Process
-
-1. Fork the repository and create your branch from main.
-2. Write clear and concise code.
-3. Add comments if needed for better understanding.
-4. Make sure your code passes existing tests.
-5. Submit a PR with a clear title and description.
-6. Wait for review and make changes if requested.
-
----
-
-## 📂 Creating Issues
-
-When creating an issue, please include: 
-- A clear title
-- A detailed description of the bug/feature
-- Steps to reproduce (if applicable)
-- Screenshots (if possible)
-
----
-
-Thank you for contributing! ❤️  
-Let’s build something great together.
-
-
-
+✨ Let’s make Screentime-Recorder awesome — one PR at a time.  
+We’re excited to have you on board! 🧑‍💻🚀
