@@ -1,75 +1,88 @@
-# ✨ Contributing to Screentime-Recoder
+# 🚀 Welcome to the Screentime-Recorder Contribution Guide
 
-Hi there! 👋 We're so glad you're here. Whether you're fixing bugs, adding new features, improving the UI, or just making suggestions — every contribution counts and makes this project better.
-
----
-
-## 📌 About the Project
-
-**Screentime-Recoder** is a desktop application built for **desktop** that helps users track how much time they spend on different applications — just like the Screen Time feature on smartphones 📱, but for **MacBooks 💻**. 
-
-The aim is to promote digital wellness, boost productivity, and give users insights into their screen habits.
-
-We’re a team of 4 developers working on building this from scratch. If you’re here to contribute, welcome to the fam! 🤝
+Hey awesome dev! 🙌  
+Whether you're reporting bugs, refining the UI, adding a cool feature, or just dropping suggestions — you’re helping shape this project into something amazing. Every bit of effort matters. Thanks for stopping by! 🧡
 
 ---
 
-## 🛠️ Setting up the Project Locally
+## 📖 What’s This Project About?
 
-To contribute to the Screentime-Recoder project, follow these steps to set up the project on your local MacBook:
+**Screentime-Recorder** is a desktop app (built with ❤️ for **Mac users**) that monitors how long you're using each application — essentially bringing the mobile "Screen Time" experience to your laptop. 💻📊
 
-1. **Fork** this repository by clicking on the top-right "Fork" button on GitHub.
+Its core goal?  
+**Empower users to track digital usage, manage time better, and boost productivity.**
 
-2. **Clone** your forked version of the repo:
-   ```bash
+We’re a passionate group of 4 devs building this from the ground up. If you're ready to chip in, you're officially part of the crew now! 🛳️
+
+---
+
+## ⚙️ Local Project Setup
+
+To get started with contributing, here’s a step-by-step guide for setting it up locally:
+
+1. **Fork** this repository using the GitHub "Fork" button (top-right corner).
+
+2. **Clone** your fork:
    git clone https://github.com/YOUR-USERNAME/Screentime-recoder.git
-3.	Navigate to the project directory:
+
+3. **Move** into the project directory:
    cd Screentime-recoder
 
-4.	Install the required dependencies (if using a frontend framework like React):
-   	npm install
+4. **Move** in client directory:
+   cd client
+
+5. **Install dependencies** (if the project uses Node.js/React):
+   npm install
+
+6. **Move** to server directory:
+   cd server -- Assuming you are in root directory
+
+8. **Start the server**:
+   npm start
 
 ---
 
-## 📌 Quick Commands Summary (Same as Before — Double Checked ✅)
+## 📋 Quick Command Reference
 
-```markdown
-## 📌 Quick Commands Summary
+Here’s a quick cheat sheet to help you navigate the project easily:
 
-| Action                       | Command                                       |
-|-----------------------------|-----------------------------------------------|
-| Clone the repo              | `git clone https://github.com/USERNAME/REPO` |
-| Navigate to folder          | `cd Screentime-recoder`                       |
-| Install dependencies (JS)   | `npm install`                                 |
-| Start server                | `npm start`                                   |
-| Create new branch           | `git checkout -b your-branch-name`           |
-| Stage changes               | `git add .`                                   |
-| Commit your changes         | `git commit -m "Your message"`                |
-| Push to GitHub              | `git push origin your-branch-name`           |
+| Action                        | Command                                       |
+|------------------------------|-----------------------------------------------|
+| Clone the repo               | git clone https://github.com/USERNAME/REPO   |
+| Navigate to folder           | cd Screentime-recoder                        |
+| Install dependencies         | npm install                                  |
+| Start the project            | npm start                                    |
+| Create a new branch          | git checkout -b your-branch-name             |
+| Stage your changes           | git add .                                    |
+| Commit your changes          | git commit -m "Your message"                 |
+| Push your branch             | git push origin your-branch-name             |
 
+---
 
-## 🧠 How to Contribute
+## 🌟 How to Contribute
 
-1. Go to the [Issues](https://github.com/nst-sdc/Screentime-recoder/issues) tab.
+Want to contribute? Awesome! Here's what to do:
 
-2. Choose any open issue you’d like to work on — look for labels like `good first issue`, `frontend`, or `documentation`.
+1. Head over to the Issues section: https://github.com/nst-sdc/Screentime-recoder/issues
+2. Pick any open issue — especially those tagged `good first issue`, `frontend`, `documentation` etc.
+3. Drop a comment like: "I'd love to take this up!" and wait until it gets assigned to you.
 
-3. Comment on the issue:
-   > "I'd like to work on this!"
-
-   And wait for the issue to be assigned to you.
-
-4. Create a new branch:
-   ```bash
+4. Create your working branch:
    git checkout -b your-branch-name
 
-5.	Make your changes and stage them:
+5. Make the required changes and stage them:
    git add .
 
-6.	Commit your changes:
+6. Commit your changes with a meaningful message:
    git commit -m "Add: Your Feature"
 
-7.	Push your branch to GitHub:
+7. Push your branch:
    git push origin your-branch-name
 
-8.	Open a Pull Request from your branch to the main branch and link it to the issue you worked on.
+8. Finally, open a Pull Request (PR) from your branch to the main branch, and link the related issue.
+
+---
+
+✨ Let’s make Screentime-Recorder awesome — one PR at a time.  
+We’re excited to have you on board! 🧑‍💻🚀
+
