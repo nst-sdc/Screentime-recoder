@@ -12,12 +12,34 @@
         transition: background-color 0.3s ease, color 0.3s ease;
       }
 
- 
+
+    
     </style>
   </head>
   <body>
     <div id="root"></div>
     <!-- React dark mode toggle UI can be rendered here, e.g. a switch component -->
     <script type="module" src="/src/main.jsx"></script>
+    <label class="switch">
+      <input type="checkbox" id="mode-toggle" />
+      <span class="slider"></span>
+    </label>
+    <script>
+      const toggleInput = document.getElementById('mode-toggle');
+
+      toggleInput.addEventListener('change', () => {
+        document.body.classList.toggle('dark-mode');
+        const isDark = document.body.classList.contains('dark-mode');
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      });
+
+      window.addEventListener('DOMContentLoaded', () => {
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+          document.body.classList.add('dark-mode');
+          toggleInput.checked = true;
+        }
+      });
+    </script>
   </body>
 </html>
