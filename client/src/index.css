@@ -1,7 +1,7 @@
 /* Tailwind Directives */
 @tailwind base;
 @tailwind components;
-@tailwind utilities;
+@tailwind utilities; 
 
 /* Custom Global Styles */
 :root {
