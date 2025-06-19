@@ -85,4 +85,3 @@ Want to contribute? Awesome! Here's what to do:
 
 ✨ Let’s make Screentime-Recorder awesome — one PR at a time.  
 We’re excited to have you on board! 🧑‍💻🚀
-
