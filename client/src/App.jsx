@@ -6,47 +6,30 @@ import Login from './pages/Login'; //login page
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
+
+
+function Layout() {
+  return (
+    <>
+      <Navbar />
+      <ThemeToggle />
+      <Outlet />
+    </>
+  );
+}
 
 function App() {
   return (
     <Router>
-
       <Routes>
-
-        <Route path='/' element={ 
-          <>
-            <Navbar/>
-            <ThemeToggle/>
-          </> 
-        }/>
-
-        <Route path='/home'
-        element={ 
-          <>
-            <Navbar/>
-            <ThemeToggle/>
-            <Home/> 
-          </>
-        }/>
-        <Route path='/login'
-          element={ 
-            <>
-              <Navbar/>
-              <ThemeToggle/>
-              <Login/> 
-            </>
-          }/>
-        <Route path='/dashboard'
-          element={ 
-            <>
-              <Navbar/>
-              <ThemeToggle/>
-              <Dashboard/> 
-            </>
-          }/>
+        <Route element={<Layout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/home" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+        </Route>
       </Routes>
-
     </Router>
   );
 }
