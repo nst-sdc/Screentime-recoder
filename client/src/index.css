@@ -1,9 +1,9 @@
 /* Tailwind Directives */
 @tailwind base;
 @tailwind components;
-@tailwind utilities; 
+@tailwind utilities;
 
-/* Custom Global Styles (merged from main) */
+/* Custom Global Styles */
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -33,7 +33,6 @@ body {
   min-height: 100vh;
 }
 
-/* Optional: remove flex centering from body for layout flexibility */
 h1 {
   font-size: 3.2em;
   line-height: 1.1;
@@ -71,7 +70,7 @@ button:focus-visible {
   }
 }
 
-/* Optional: Dark mode switch styles */
+/* Dark mode switch styling */
 body.dark-mode {
   background-color: #121212;
   color: #f1f1f1;
