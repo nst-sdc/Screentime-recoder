@@ -8,12 +8,12 @@ function App() {
   return (
     <>
       <Navbar />
-      <div className="p-4">
-        <ThemeToggle />
+      <div className="p-4"> 
+        <ThemeToggle /> 
         <Login />
       </div>
     </>
   );
 }
 
-export default App; 
+export default App;  
