@@ -6,21 +6,21 @@ const ThemeToggle = () => {
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark') {
-      document.body.classList.add('dark-mode');
+      document.body.classList.add('dark-mode'); 
       setIsDark(true);
     }
   }, []);
 
-  const toggleTheme = () => {
-    const newTheme = !isDark;
-    setIsDark(newTheme);
+  const toggleTheme = () => { 
+    const newTheme = !isDark;  
+    setIsDark(newTheme); 
 
     if (newTheme) {
       document.body.classList.add('dark-mode');
-      localStorage.setItem('theme', 'dark');
-    } else {
+      localStorage.setItem('theme', 'dark'); 
+    } else { 
       document.body.classList.remove('dark-mode');
-      localStorage.setItem('theme', 'light');
+      localStorage.setItem('theme', 'light'); 
     }
   };
 
