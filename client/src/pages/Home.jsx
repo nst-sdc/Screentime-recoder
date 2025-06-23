@@ -1,9 +1,6 @@
-import React from 'react';
+import React from "react";
+import LandingPage from "../components/LandingPage";
 
-const Home = () => (
-  <div style={{ padding: '2rem' }}>
-    This is Home (empty for now)
-  </div>
-);
+const Home = () => <LandingPage />;
 
-export default Home; 
+export default Home;

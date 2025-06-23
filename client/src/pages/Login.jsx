@@ -1,42 +1,45 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   const [formData, setFormData] = useState({
-    email: '',
-    password: ''
+    email: "",
+    password: ""
   });
 
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
+  const handleChange = e => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
-    // backend/JWT integration here 
+    console.log("Form submitted:", formData);
+    // backend/JWT integration here
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-green-50 dark:from-[#121b22] dark:to-[#121b22] px-6 py-24 relative">
-
       {/* Logo Top Left */}
       <div className="absolute top-6 left-8">
         <h1 className="text-xl font-semibold text-green-700 dark:text-whatsDark-text">
-          ScreenRecorder <span className="text-sm text-gray-500">(logo/title yet to be made)</span>
+          ScreenRecorder{" "}
+          <span className="text-sm text-gray-500">
+            (logo/title yet to be made)
+          </span>
         </h1>
       </div>
 
       <div className="w-full max-w-7xl h-[620px] grid grid-cols-1 md:grid-cols-2 gap-14 bg-white dark:bg-[#1f2c33] shadow-2xl rounded-2xl overflow-hidden border border-green-200">
-
         {/* Left Side: Login Form */}
         <div className="flex flex-col justify-center px-14 py-12">
-          <h2 className="text-4xl font-bold text-green-700 dark:text-whatsDark-text mb-4">Welcome Back</h2>
+          <h2 className="text-4xl font-bold text-green-700 dark:text-whatsDark-text mb-4">
+            Welcome Back
+          </h2>
           <p className="text-gray-600 dark:text-whatsDark-text text-lg mb-8">
             Login to manage your time and tasks efficiently.
           </p>
@@ -77,10 +80,10 @@ const Login = () => {
           </form>
 
           <div className="mt-6 text-sm text-center text-gray-600 dark:text-whatsDark-text">
-            Don’t have an account?{' '}
+            Don’t have an account?{" "}
             <span
               className="text-green-600 font-medium cursor-pointer hover:underline"
-              onClick={() => navigate('/register')}
+              onClick={() => navigate("/register")}
             >
               Register Now
             </span>
@@ -98,7 +101,8 @@ const Login = () => {
             Effortlessly manage your time and productivity
           </h2>
           <p className="text-green-700 dark:text-whatsDark-text text-center max-w-sm">
-            Stay on top of your tasks, track progress, and achieve more — all in one place.
+            Stay on top of your tasks, track progress, and achieve more — all in
+            one place.
           </p>
         </div>
       </div>
