@@ -4,13 +4,22 @@ import ThemeToggle from "./ThemeToggle";
 
 const Navbar = () => {
   return (
-    <nav style={{ padding: "1rem", backgroundColor: "#333" }}>
+    <nav
+      style={{
+        padding: "1rem",
+        backgroundColor: "#333",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center"
+      }}
+    >
       <ul
         style={{
           display: "flex",
           gap: "1rem",
           listStyle: "none",
-          color: "white"
+          margin: 0,
+          padding: 0
         }}
       >
         <li>
@@ -32,9 +41,7 @@ const Navbar = () => {
           </Link>
         </li>
       </ul>
-      <div style={{ float: "right" }}>
-        <ThemeToggle />
-      </div>
+      <ThemeToggle />
     </nav>
   );
 };
