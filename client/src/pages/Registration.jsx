@@ -65,8 +65,8 @@ const Registration = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             <input
               type="text"
-              name="fullName"
-              placeholder="Full Name"
+              name="Name"
+              placeholder="Name"
               value={formData.fullName}
               onChange={handleChange}
               required
