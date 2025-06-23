@@ -4,7 +4,7 @@ import ThemeToggle from "./ThemeToggle";
 
 const Navbar = () => {
   return (
-    <nav style={{ padding: "1rem", backgroundColor: "#333" }}>
+    <nav style={{ padding: "1rem", backgroundColor: "#333", display: "flex", justifyContent: 'space-between', alignItems: 'center' }}>
       <ul
         style={{
           display: "flex",
