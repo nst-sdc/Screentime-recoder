@@ -5,7 +5,7 @@ import ThemeToggle from './components/ThemeToggle';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Registration from './pages/Registration';
-import Footer from './components/Footer';
+import Footer from './components/Footer'; 
 
 function App() {
   return (
@@ -15,7 +15,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Registration />} />
-            {/* <Route path="/dashboard" element={<Dashboard />} /> */}
+            {/* <Route path="/dashboard" element={<Dashboard />} /> */} 
           </Routes>
         <Footer />
     </>
