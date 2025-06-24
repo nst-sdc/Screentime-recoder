@@ -4,35 +4,28 @@ import ThemeToggle from "./ThemeToggle";
 
 const Navbar = () => {
   return (
-    <nav style={{ padding: "1rem", backgroundColor: "#333" }}>
-      <ul
-        style={{
-          display: "flex",
-          gap: "1rem",
-          listStyle: "none",
-          color: "white"
-        }}
-      >
-        <li>
-          <Link to="/" style={{ color: "white", textDecoration: "none" }}>
-            Home
-          </Link>
-        </li>
-        <li>
-          <Link to="/login" style={{ color: "white", textDecoration: "none" }}>
-            Login
-          </Link>
-        </li>
-        <li>
-          <Link
-            to="/dashboard"
-            style={{ color: "white", textDecoration: "none" }}
-          >
-            Dashboard
-          </Link>
-        </li>
+    <nav className="flex items-center justify-between px-8 py-3 shadow-md bg-[#075E54] dark:bg-[#1f2c33] border-b border-green-800 dark:border-[#2a3942]">
+      {/* Left-side links */}
+      <ul className="flex gap-6 list-none">
+        {[
+          { to: "/", label: "Home" },
+          { to: "/login", label: "Login" },
+          { to: "/dashboard", label: "Dashboard" },
+        ].map((link) => (
+          <li key={link.to}>
+            <Link
+              to={link.to}
+              className="relative px-3 py-1.5 rounded-full text-[#e1f2f1] dark:text-[#e1f2f1] text-base font-semibold tracking-wide hover:bg-white hover:bg-opacity-10 hover:text-white transition-colors duration-200 shadow-sm"
+              style={{ textShadow: "0 1px 2px rgba(0,0,0,0.3)" }}
+            >
+              {link.label}
+            </Link>
+          </li>
+        ))}
       </ul>
-      <div style={{ float: "right" }}>
+
+      {/* Right-side theme toggle */}
+      <div className="flex items-center">
         <ThemeToggle />
       </div>
     </nav>
