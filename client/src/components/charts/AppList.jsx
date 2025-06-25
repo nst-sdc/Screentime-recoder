@@ -3,13 +3,13 @@ import { FaChrome, FaSafari, FaEdge, FaFigma, FaMicrosoft } from "react-icons/fa
 import { SiAdobeillustrator, SiMessenger } from "react-icons/si";
 
 const apps = [
-  { name: "YouTube", time: "3 h 10 min", icon: <FaChrome /> },
-  { name: "Instagram", time: "2 h 45 min", icon: <FaEdge /> },
-  { name: "Netflix", time: "2 h 20 min", icon: <FaSafari /> },
-  { name: "WhatsApp", time: "1 h 15 min", icon: <SiMessenger /> },
-  { name: "Facebook", time: "58 min", icon: <FaMicrosoft /> },
-  { name: "Twitter", time: "42 min", icon: <FaFigma /> },
-  { name: "Snapchat", time: "25 min", icon: <SiAdobeillustrator /> },
+  { name: "Chrome", time: "3 h 10 min", icon: <FaChrome /> },
+  { name: "Edge", time: "2 h 45 min", icon: <FaEdge /> },
+  { name: "Safari", time: "2 h 20 min", icon: <FaSafari /> },
+  { name: "Chat", time: "1 h 15 min", icon: <SiMessenger /> },
+  { name: "Window", time: "58 min", icon: <FaMicrosoft /> },
+  { name: "Figma", time: "42 min", icon: <FaFigma /> },
+  { name: "Office", time: "25 min", icon: <SiAdobeillustrator /> },
 ];
 
 const AppList = () => (
