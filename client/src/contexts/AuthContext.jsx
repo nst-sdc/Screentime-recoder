@@ -11,30 +11,34 @@ export const useAuth = () => {
   return context;
 };
 
-export const AuthProvider = ({ children }) => { 
+export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token'));
-  const [isLoading, setIsLoading] = useState(true); 
+  const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
+  // Always set baseURL and auth headers correctly
   useEffect(() => {
     axios.defaults.baseURL = API_BASE_URL;
     if (token) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    } else {
+      delete axios.defaults.headers.common['Authorization'];
     }
   }, [token]);
 
+  // Verify token on first load
   useEffect(() => {
-    const checkAuth = async () => { 
+    const checkAuth = async () => {
       if (token) {
         try {
-          const response = await axios.get('/auth/verify'); 
-          setUser(response.data.data);
+          const res = await axios.get('/auth/verify');
+          setUser(res.data.data);
           setIsAuthenticated(true);
-        } catch (error) {
-          console.error('Token verification failed:', error);
+        } catch (err) {
+          console.error('Token verification failed:', err);
           logout();
         }
       }
@@ -44,10 +48,11 @@ export const AuthProvider = ({ children }) => {
     checkAuth();
   }, [token]);
 
+  // Handle Google login redirect with token in URL
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const urlToken = urlParams.get('token');
-    
+
     if (urlToken) {
       setToken(urlToken);
       localStorage.setItem('token', urlToken);
@@ -55,17 +60,21 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
+  // Google login
   const login = () => {
     window.location.href = `${API_BASE_URL}/auth/google`;
   };
 
+  // Email + Password login
   const loginWithCredentials = async (email, password) => {
     try {
       const res = await axios.post('/auth/login', { email, password });
       const jwt = res.data.token;
+
       localStorage.setItem('token', jwt);
       setToken(jwt);
       axios.defaults.headers.common['Authorization'] = `Bearer ${jwt}`;
+
       const userRes = await axios.get('/auth/verify');
       setUser(userRes.data.data);
       setIsAuthenticated(true);
@@ -75,11 +84,12 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Logout user
   const logout = async () => {
     try {
       await axios.post('/auth/logout');
-    } catch (error) {
-      console.error('Logout error:', error);
+    } catch (err) {
+      console.error('Logout error:', err);
     } finally {
       setUser(null);
       setToken(null);
@@ -89,24 +99,26 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Update profile
   const updateProfile = async (data) => {
     try {
-      const response = await axios.put('/auth/profile', data);
-      setUser(response.data.data);
-      return response.data;
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      throw error;
+      const res = await axios.put('/auth/profile', data);
+      setUser(res.data.data);
+      return res.data;
+    } catch (err) {
+      console.error('Update profile error:', err);
+      throw err;
     }
   };
 
+  // Delete account
   const deleteAccount = async () => {
     try {
       await axios.delete('/auth/account');
       logout();
-    } catch (error) {
-      console.error('Error deleting account:', error);
-      throw error;
+    } catch (err) {
+      console.error('Delete account error:', err);
+      throw err;
     }
   };
 
@@ -120,12 +132,8 @@ export const AuthProvider = ({ children }) => {
     logout,
     updateProfile,
     deleteAccount,
-    api: axios
+    api: axios,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
