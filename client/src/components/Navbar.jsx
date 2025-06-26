@@ -49,15 +49,17 @@ const Navbar = () => {
             </li>
           </>
         )}
-        <li>
-          <Link
-            to="/dashboard"
-            className="relative px-3 py-1.5 rounded-full text-[#e1f2f1] dark:text-[#e1f2f1] text-base font-semibold tracking-wide hover:bg-white hover:bg-opacity-10 hover:text-white transition-colors duration-200 shadow-sm"
-            style={{ textShadow: "0 1px 2px rgba(0,0,0,0.3)" }}
-          >
-            Dashboard
-          </Link>
-        </li>
+        {isAuthenticated && (
+          <li>
+            <Link
+              to="/dashboard"
+              className="relative px-3 py-1.5 rounded-full text-[#e1f2f1] dark:text-[#e1f2f1] text-base font-semibold tracking-wide hover:bg-white hover:bg-opacity-10 hover:text-white transition-colors duration-200 shadow-sm"
+              style={{ textShadow: "0 1px 2px rgba(0,0,0,0.3)" }}
+            >
+              Dashboard
+            </Link>
+          </li>
+        )}
       </ul>
 
       {/* Right-side user info and theme toggle */}
