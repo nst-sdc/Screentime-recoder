@@ -11,10 +11,10 @@ export const useAuth = () => {
   return context;
 };
 
-export const AuthProvider = ({ children }) => {
+export const AuthProvider = ({ children }) => { 
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token'));
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true); 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
@@ -27,10 +27,10 @@ export const AuthProvider = ({ children }) => {
   }, [token]);
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const checkAuth = async () => { 
       if (token) {
         try {
-          const response = await axios.get('/auth/verify');
+          const response = await axios.get('/auth/verify'); 
           setUser(response.data.data);
           setIsAuthenticated(true);
         } catch (error) {
@@ -57,6 +57,22 @@ export const AuthProvider = ({ children }) => {
 
   const login = () => {
     window.location.href = `${API_BASE_URL}/auth/google`;
+  };
+
+  const loginWithCredentials = async (email, password) => {
+    try {
+      const res = await axios.post('/auth/login', { email, password });
+      const jwt = res.data.token;
+      localStorage.setItem('token', jwt);
+      setToken(jwt);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${jwt}`;
+      const userRes = await axios.get('/auth/verify');
+      setUser(userRes.data.data);
+      setIsAuthenticated(true);
+    } catch (err) {
+      console.error('Login failed:', err);
+      throw err;
+    }
   };
 
   const logout = async () => {
@@ -100,6 +116,7 @@ export const AuthProvider = ({ children }) => {
     isLoading,
     token,
     login,
+    loginWithCredentials,
     logout,
     updateProfile,
     deleteAccount,
