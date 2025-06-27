@@ -19,7 +19,7 @@ export const AuthProvider = ({ children }) => {
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
-  // Always set baseURL and auth headers correctly
+  // Always set baseURL and auth headers correctly 
   useEffect(() => {
     axios.defaults.baseURL = API_BASE_URL;
     if (token) {
