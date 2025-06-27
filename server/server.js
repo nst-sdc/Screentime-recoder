@@ -14,7 +14,7 @@ const port = 3000;
 
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    origin: process.env.CLIENT_URL || "http://localhost:5173", 
     credentials: true
   })
 );
@@ -24,7 +24,7 @@ app.use(express.json());
 app.use(
   session({
     secret: process.env.SESSION_SECRET,
-    resave: false,
+    resave: false, 
     saveUninitialized: false,
     cookie: {
       secure: process.env.NODE_ENV === "production",

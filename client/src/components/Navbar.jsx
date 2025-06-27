@@ -1,10 +1,19 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import ThemeToggle from "./ThemeToggle";
 
 const Navbar = () => {
   const { isAuthenticated, isLoading, user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    const confirmed = window.confirm("Are you sure you want to logout?");
+    if (confirmed) {
+      await logout();
+      navigate("/login"); 
+    }
+  };
 
   if (isLoading) {
     return (
@@ -22,7 +31,6 @@ const Navbar = () => {
           <Link
             to="/"
             className="relative px-3 py-1.5 rounded-full text-[#e1f2f1] dark:text-[#e1f2f1] text-base font-semibold tracking-wide hover:bg-white hover:bg-opacity-10 hover:text-white transition-colors duration-200 shadow-sm"
-            style={{ textShadow: "0 1px 2px rgba(0,0,0,0.3)" }}
           >
             Home
           </Link>
@@ -32,8 +40,7 @@ const Navbar = () => {
             <li>
               <Link
                 to="/login"
-                className="relative px-3 py-1.5 rounded-full text-[#e1f2f1] dark:text-[#e1f2f1] text-base font-semibold tracking-wide hover:bg-white hover:bg-opacity-10 hover:text-white transition-colors duration-200 shadow-sm"
-                style={{ textShadow: "0 1px 2px rgba(0,0,0,0.3)" }}
+                className="relative px-3 py-1.5 rounded-full text-[#e1f2f1] text-base font-semibold tracking-wide hover:bg-white hover:bg-opacity-10 hover:text-white transition-colors duration-200"
               >
                 Login
               </Link>
@@ -41,8 +48,7 @@ const Navbar = () => {
             <li>
               <Link
                 to="/register"
-                className="relative px-3 py-1.5 rounded-full text-[#e1f2f1] dark:text-[#e1f2f1] text-base font-semibold tracking-wide hover:bg-white hover:bg-opacity-10 hover:text-white transition-colors duration-200 shadow-sm"
-                style={{ textShadow: "0 1px 2px rgba(0,0,0,0.3)" }}
+                className="relative px-3 py-1.5 rounded-full text-[#e1f2f1] text-base font-semibold tracking-wide hover:bg-white hover:bg-opacity-10 hover:text-white transition-colors duration-200"
               >
                 Register
               </Link>
@@ -53,8 +59,7 @@ const Navbar = () => {
           <li>
             <Link
               to="/dashboard"
-              className="relative px-3 py-1.5 rounded-full text-[#e1f2f1] dark:text-[#e1f2f1] text-base font-semibold tracking-wide hover:bg-white hover:bg-opacity-10 hover:text-white transition-colors duration-200 shadow-sm"
-              style={{ textShadow: "0 1px 2px rgba(0,0,0,0.3)" }}
+              className="relative px-3 py-1.5 rounded-full text-[#e1f2f1] text-base font-semibold tracking-wide hover:bg-white hover:bg-opacity-10 hover:text-white transition-colors duration-200"
             >
               Dashboard
             </Link>
@@ -62,7 +67,7 @@ const Navbar = () => {
         )}
       </ul>
 
-      {/* Right-side user info and theme toggle */}
+      {/* Right-side user info, logout, and theme toggle */}
       <div className="flex items-center space-x-4">
         {isAuthenticated && user && (
           <div className="flex items-center space-x-3">
@@ -76,6 +81,12 @@ const Navbar = () => {
             <span className="text-[#e1f2f1] text-sm font-medium">
               {user.name}
             </span>
+            <button
+              onClick={handleLogout}
+              className="ml-2 px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg shadow transition-all duration-300"
+            >
+              Logout
+            </button>
           </div>
         )}
         <ThemeToggle />
