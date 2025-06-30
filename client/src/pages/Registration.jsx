@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 
 const Registration = () => {
   const [formData, setFormData] = useState({
@@ -109,14 +111,19 @@ const Registration = () => {
                 value={formData.password}
                 onChange={handleChange}
                 required
-                className="w-full px-5 py-3 pr-10 border border-gray-300 rounded-lg bg-white text-black dark:bg-[#2a3942] dark:text-white dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full px-5 py-3 pr-10 border border-gray-300 rounded-lg bg-white text-black dark:bg-[#2a3942] dark:text-white dark:border-gray-600 focus:outline-none ring-0 focus:ring-0 hover:ring-0"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 dark:text-white"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 dark:text-white toggle-password"
+                style={{ background: 'none', border: 'none', padding: 0, margin: 0 }}
               >
-                {showPassword ? "🙈" : "👁️"}
+                {showPassword ? (
+                  <FontAwesomeIcon icon={faEye} />
+                ) : (
+                  <FontAwesomeIcon icon={faEyeSlash} />
+                )}
               </button>
             </div>
 
@@ -129,14 +136,19 @@ const Registration = () => {
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 required
-                className="w-full px-5 py-3 pr-10 border border-gray-300 rounded-lg bg-white text-black dark:bg-[#2a3942] dark:text-white dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full px-5 py-3 pr-10 border border-gray-300 rounded-lg bg-white text-black dark:bg-[#2a3942] dark:text-white dark:border-gray-600 focus:outline-none ring-0 focus:ring-0 hover:ring-0"
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 dark:text-white"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 dark:text-white toggle-password"
+                style={{ background: 'none', border: 'none', padding: 0, margin: 0 }}
               >
-                {showConfirmPassword ? "🙈" : "👁️"}
+                {showConfirmPassword ? (
+                  <FontAwesomeIcon icon={faEye} />
+                ) : (
+                  <FontAwesomeIcon icon={faEyeSlash} />
+                )}
               </button>
             </div>
 
@@ -206,3 +218,4 @@ const Registration = () => {
 };
 
 export default Registration;
+
