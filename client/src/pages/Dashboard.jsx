@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import BarChart from "../components/charts/BarChart";
 import AppList from "../components/charts/AppList";
+import { trackTimeOnDomain } from "../utils/tracker"; // ✅ Adjust path if needed
 
 const StatCard = ({ title, value, color }) => (
   <div className={`p-4 rounded-xl shadow-md text-white ${color}`}>
@@ -10,11 +12,35 @@ const StatCard = ({ title, value, color }) => (
 );
 
 const Dashboard = () => {
+  const [startTime, setStartTime] = useState(null);
+  const [endTime, setEndTime] = useState(null);
+
+  useEffect(() => {
+    const stopTracking = trackTimeOnDomain("Dashboard");
+
+    axios
+      .get("http://localhost:3000/api/domain")
+      .then((res) => {
+        if (res.data.length > 0) {
+          const lastEntry = res.data[res.data.length - 1]; // last record
+          setStartTime(new Date(lastEntry.startTime).toLocaleTimeString());
+          setEndTime(new Date(lastEntry.endTime).toLocaleTimeString());
+        }
+      })
+      .catch((err) => console.error("Error fetching time:", err));
+
+    return () => {
+      stopTracking();
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-white p-6">
       <header className="mb-8">
         <h1 className="text-3xl font-bold mb-1">Usage Yesterday, 24 June</h1>
-        <p className="text-lg text-gray-500 dark:text-gray-300">7 h 34 min</p>
+        <p className="text-lg text-gray-500 dark:text-gray-300">
+          Start: {startTime || "Loading..."} — End: {endTime || "Loading..."}
+        </p>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -51,15 +77,7 @@ const Dashboard = () => {
             <AppList />
           </div>
         </div>
-
-        {/* Web Statistics (placeholder) */}
-        {/* <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4"> */}
-          {/* <h2 className="text-md font-semibold mb-2">Web Statistics</h2> */}
-          {/* <div className="h-40 bg-gray-100 dark:bg-gray-700 rounded-md flex items-center justify-center text-gray-400"> */}
-            {/* [ Line Chart Placeholder ] */}
-          </div>
-        {/* </div> */}
-    {/* //   </div> */}
+      </div>
 
       <footer className="mt-10 text-center text-sm text-gray-500 dark:text-gray-400">
         © 2025 Screentime Recorder. All rights reserved.
