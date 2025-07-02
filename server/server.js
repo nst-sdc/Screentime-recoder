@@ -15,7 +15,7 @@ import { connectDB } from "./config/db.js";
 import userRouter from "./routes/user.route.js";
 import authRouter from "./routes/auth.route.js";
 import domainRouter from "./routes/domain.route.js"; // ✅ For domain time tracking
-import activityRouter from "./routes/activity.route.js"; // ✅ NEW route if needed
+import activityRouter from "./routes/activity.route.js"; // ✅ New activity route
 
 // App setup
 const app = express();
@@ -46,7 +46,7 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === "production", // Secure cookie in prod
+      secure: process.env.NODE_ENV === "production",
       maxAge: 24 * 60 * 60 * 1000, // 1 day
     },
   })
@@ -59,8 +59,8 @@ app.use(passport.session());
 // Routes
 app.use("/api/users", userRouter);
 app.use("/api/auth", authRouter);
-app.use("/api/domain", domainRouter); // ✅ Time tracking route
-app.use("/api/activity", activityRouter); // ✅ Additional activity route if needed
+app.use("/api/domain", domainRouter); // ✅ Time tracking
+app.use("/api/activity", activityRouter); // ✅ Activity logging
 
 // Health check route
 app.get("/api/health", (req, res) => {
@@ -69,6 +69,7 @@ app.get("/api/health", (req, res) => {
 
 // Start server
 app.listen(port, () => {
-  console.log("Connected to MongoDB");
+  console.log("✅ Connected to MongoDB");
   console.log(`🚀 Server listening on port ${port}`);
 });
+
