@@ -3,7 +3,10 @@ import DomainActivity from "../models/domainActivity.model.js";
 
 const router = express.Router();
 
-// POST: Track domain activity
+/**
+ * POST /api/domain
+ * Logs a domain activity entry
+ */
 router.post("/", async (req, res) => {
     try {
         const { domain, startTime, endTime, user } = req.body;
@@ -20,16 +23,22 @@ router.post("/", async (req, res) => {
         });
 
         await entry.save();
-        res.status(201).json(entry);
+        res.status(201).json({
+            message: "Domain activity saved successfully",
+            data: entry,
+        });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-// ✅ GET: Fetch all domain activity
+/**
+ * GET /api/domain
+ * Fetch all domain activity logs (sorted by start time descending)
+ */
 router.get("/", async (req, res) => {
     try {
-        const logs = await DomainActivity.find().sort({ startTime: -1 }); // newest first
+        const logs = await DomainActivity.find().sort({ startTime: -1 });
         res.status(200).json(logs);
     } catch (err) {
         res.status(500).json({ error: err.message });

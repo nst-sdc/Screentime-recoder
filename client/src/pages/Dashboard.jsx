@@ -11,9 +11,23 @@ const StatCard = ({ title, value, color }) => (
   </div>
 );
 
+const formatTime = (timestamp) =>
+  new Date(timestamp).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+const formatDuration = (ms) => {
+  const totalMinutes = Math.floor(ms / 60000);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return `${hours} h ${minutes} min`;
+};
+
 const Dashboard = () => {
   const [startTime, setStartTime] = useState(null);
   const [endTime, setEndTime] = useState(null);
+  const [duration, setDuration] = useState(null);
 
   useEffect(() => {
     const stopTracking = trackTimeOnDomain("Dashboard");
@@ -21,25 +35,29 @@ const Dashboard = () => {
     axios
       .get("http://localhost:3000/api/domain")
       .then((res) => {
-        if (res.data.length > 0) {
-          const lastEntry = res.data[res.data.length - 1]; // last record
-          setStartTime(new Date(lastEntry.startTime).toLocaleTimeString());
-          setEndTime(new Date(lastEntry.endTime).toLocaleTimeString());
+        const data = res.data;
+        if (data.length > 0) {
+          const lastEntry = data[data.length - 1];
+          setStartTime(lastEntry.startTime);
+          setEndTime(lastEntry.endTime);
+          setDuration(lastEntry.duration);
         }
       })
-      .catch((err) => console.error("Error fetching time:", err));
+      .catch((err) => console.error("Error fetching domain logs:", err));
 
-    return () => {
-      stopTracking();
-    };
+    return () => stopTracking();
   }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-white p-6">
       <header className="mb-8">
-        <h1 className="text-3xl font-bold mb-1">Usage Yesterday, 24 June</h1>
-        <p className="text-lg text-gray-500 dark:text-gray-300">
-          Start: {startTime || "Loading..."} — End: {endTime || "Loading..."}
+        <h1 className="text-3xl font-bold mb-1">Dashboard Usage</h1>
+        <p className="text-md text-gray-600 dark:text-gray-300">
+          Start: {startTime ? formatTime(startTime) : "Loading..."} — End:{" "}
+          {endTime ? formatTime(endTime) : "Loading..."}
+        </p>
+        <p className="text-md text-gray-600 dark:text-gray-300">
+          Duration: {duration ? formatDuration(duration) : "Loading..."}
         </p>
       </header>
 
