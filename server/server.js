@@ -6,6 +6,7 @@ import passport from "./config/passport.js";
 import { connectDB } from "./config/db.js";
 import userRouter from "./routes/user.route.js";
 import authRouter from "./routes/auth.route.js";
+import trackingRouter from "./routes/tracking.route.js";
 
 dotenv.config();
 
@@ -38,6 +39,7 @@ app.use(passport.session());
 
 app.use("/api/users", userRouter);
 app.use("/api/auth", authRouter);
+app.use("/api/tracking", trackingRouter);
 
 app.get("/api/health", (req, res) => {
   res.status(200).json({ message: "Server is running!" });
