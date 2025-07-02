@@ -10,13 +10,19 @@ import session from "express-session";
 // Custom modules
 import passport from "./config/passport.js";
 import { connectDB } from "./config/db.js";
+
+// Import routes
 import userRouter from "./routes/user.route.js";
 import authRouter from "./routes/auth.route.js";
-import domainRouter from "./routes/domain.route.js"; // ✅ For time tracking
+import domainRouter from "./routes/domain.route.js"; // ✅ For domain time tracking
+import activityRouter from "./routes/activity.route.js"; // ✅ NEW route if needed
 
 // App setup
 const app = express();
 const port = process.env.PORT || 3000;
+
+// Connect to MongoDB
+connectDB();
 
 // Debug: Confirm env values are loaded
 console.log("GOOGLE_CLIENT_ID:", process.env.GOOGLE_CLIENT_ID);
@@ -40,7 +46,7 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === "production", // Enable secure cookie in production
+      secure: process.env.NODE_ENV === "production", // Secure cookie in prod
       maxAge: 24 * 60 * 60 * 1000, // 1 day
     },
   })
@@ -54,15 +60,15 @@ app.use(passport.session());
 app.use("/api/users", userRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/domain", domainRouter); // ✅ Time tracking route
+app.use("/api/activity", activityRouter); // ✅ Additional activity route if needed
 
 // Health check route
 app.get("/api/health", (req, res) => {
-  res.status(200).json({ message: "Server is running!" });
+  res.status(200).json({ message: "✅ Server is running!" });
 });
 
 // Start server
 app.listen(port, () => {
-  connectDB();
   console.log("Connected to MongoDB");
-  console.log(`Server listening on port ${port}`);
+  console.log(`🚀 Server listening on port ${port}`);
 });
