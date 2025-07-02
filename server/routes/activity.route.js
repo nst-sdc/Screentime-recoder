@@ -2,10 +2,16 @@ import express from "express";
 import Activity from "../models/Activity.js";
 import User from "../models/user.model.js";
 import { categorizeDomain } from "../utils/category.util.js";
+import { logActivity } from "../controllers/activity.controller.js";
+import { verifyToken } from "../middleware/auth.js";
 
 const router = express.Router();
 
-router.post("/track", async (req, res) => {
+// POST /api/activity
+router.post("/", verifyToken, logActivity);
+
+// POST /api/activity/track
+router.post("/track", verifyToken, async (req, res) => {
   const { userId, url, action } = req.body;
 
   const category = categorizeDomain(url);

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 
 const Login = () => {
   const { login: googleLogin, loginWithCredentials, isAuthenticated, isLoading } = useAuth();
@@ -12,6 +14,7 @@ const Login = () => {
   });
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -102,15 +105,29 @@ const Login = () => {
               className="w-full px-5 py-3 border border-gray-300 rounded-lg bg-white text-black dark:bg-[#2a3942] dark:text-white dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500"
             />
 
-            <input
-              type="password"
-              name="password"
-              placeholder="Password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              className="w-full px-5 py-3 border border-gray-300 rounded-lg bg-white text-black dark:bg-[#2a3942] dark:text-white dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                placeholder="Password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                className="w-full px-5 py-3 border border-gray-300 rounded-lg bg-white text-black dark:bg-[#2a3942] dark:text-white dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 dark:text-white toggle-password"
+                style={{ background: 'none', border: 'none', padding: 0, margin: 0 }}
+              >
+                {showPassword ? (
+                  <FontAwesomeIcon icon={faEye} />
+                ) : (
+                  <FontAwesomeIcon icon={faEyeSlash} />
+                )}
+              </button>
+            </div>
 
             <div className="text-right">
               <a href="#" className="text-green-600 hover:text-green-700 text-sm hover:underline">
@@ -170,7 +187,7 @@ const Login = () => {
         <div className="flex flex-col items-center justify-center bg-green-100 dark:bg-[#1f2c33] p-12 space-y-6">
           <div className="w-80 h-80 bg-gradient-to-br from-green-200 to-green-300 dark:from-green-700 dark:to-green-800 rounded-lg shadow-md border border-green-200 flex items-center justify-center">
             <div className="text-center text-green-800 dark:text-green-200">
-              <p className="text-lg font-semibold">Secure Login</p>
+              <p className="text-lg font-semibold">Secure Login</p> 
             </div>
           </div>
           <h2 className="text-2xl font-semibold text-green-800 dark:text-whatsDark-text text-center">
