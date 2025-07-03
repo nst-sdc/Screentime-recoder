@@ -7,10 +7,10 @@ import { verifyToken } from "../middleware/auth.js";
 
 const router = express.Router();
 
-// POST /api/activity
+// POST /api/activity - for tracking app usage
 router.post("/", verifyToken, logActivity);
 
-// POST /api/activity/track
+// POST /api/activity/track - for website tracking
 router.post("/track", verifyToken, async (req, res) => {
   const { userId, url, action } = req.body;
 
@@ -33,6 +33,11 @@ router.post("/track", verifyToken, async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: "Failed to record activity" });
   }
+});
+
+// GET /api/activity - testing route (optional but useful)
+router.get("/", (req, res) => {
+  res.status(200).json({ message: "Activity route works!" });
 });
 
 export default router;
