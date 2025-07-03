@@ -45,7 +45,7 @@ const Login = () => {
       await loginWithCredentials(formData.email, formData.password);
       navigate("/dashboard");
     } catch (error) {
-      setError(error.response?.data?.message || 'Login failed. Please check your credentials.');
+      setError(error.message || 'Login failed. Please check your credentials.');
     } finally {
       setIsSubmitting(false);
     }

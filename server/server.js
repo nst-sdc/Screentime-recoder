@@ -1,6 +1,13 @@
 // Load environment variables from root
 import dotenv from "dotenv";
-dotenv.config({ path: "../.env" });
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load .env from project root
+dotenv.config({ path: path.join(__dirname, "../.env") });
 
 // Core imports
 import express from "express";

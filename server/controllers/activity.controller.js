@@ -3,6 +3,9 @@ import { extractDomain } from "../utils/extractDomain.js";
 
 export const logActivity = async (req, res) => {
   try {
+    console.log("📊 Activity log request:", req.body);
+    console.log("🔑 User:", req.user?.id);
+    
     const {
       tabId,
       url,
@@ -14,19 +17,41 @@ export const logActivity = async (req, res) => {
     } = req.body;
 
     if (!req.user || !req.user.id) {
+      console.error("❌ Unauthorized - no user in request");
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
-    const domain = extractDomain(url);
+    // Validate required fields based on action
+    if (!action) {
+      console.error("❌ Missing action field");
+      return res.status(400).json({ success: false, message: "Action is required" });
+    }
 
-    if (!domain) {
-      return res.status(400).json({ success: false, message: "Invalid URL" });
+    if (!url && action === "start") {
+      console.error("❌ Missing URL for start action");
+      return res.status(400).json({ success: false, message: "URL is required for start action" });
+    }
+
+    if (!sessionId && (action === "update" || action === "end")) {
+      console.error("❌ Missing sessionId for update/end action");
+      return res.status(400).json({ success: false, message: "SessionId is required for update/end actions" });
+    }
+
+    // Extract domain only if URL is provided
+    let domain = null;
+    if (url) {
+      domain = extractDomain(url);
+      if (!domain) {
+        console.error("❌ Invalid URL:", url);
+        return res.status(400).json({ success: false, message: "Invalid URL" });
+      }
     }
 
     // Handle different types of activity logging
     switch (action) {
       case "start":
         // Start a new activity session
+        console.log("🟢 Starting new session");
         await startActivitySession(
           req.user.id,
           tabId,
@@ -39,25 +64,29 @@ export const logActivity = async (req, res) => {
 
       case "update":
         // Update existing session with duration
+        console.log("🔄 Updating session:", sessionId);
         await updateActivitySession(sessionId, duration);
         break;
 
       case "end":
         // End activity session
+        console.log("🔴 Ending session:", sessionId);
         await endActivitySession(sessionId, endTime, duration);
         break;
 
       default:
         // Legacy support - create a complete activity record
+        console.log("📝 Creating legacy activity record");
         await createActivity(req.user.id, tabId, url, domain, title, duration);
     }
 
+    console.log("✅ Activity logged successfully");
     res.status(201).json({
       success: true,
       message: "Activity logged successfully"
     });
   } catch (error) {
-    console.error("Activity logging failed:", error);
+    console.error("❌ Activity logging failed:", error);
     res.status(500).json({
       success: false,
       message: "Internal server error",
@@ -75,36 +104,57 @@ async function startActivitySession(
   title,
   sessionId
 ) {
+  if (!url || !domain) {
+    throw new Error("URL and domain are required for starting a session");
+  }
+
   const newActivity = new Activity({
     userId,
     url,
-    tabId,
-    sessionId: sessionId || `${userId}_${tabId}_${Date.now()}`,
+    tabId: tabId || 0,
+    sessionId: sessionId || `${userId}_${tabId || 0}_${Date.now()}`,
     startTime: new Date(),
     domain,
-    title,
+    title: title || '',
     action: "visit",
     isActive: true
   });
 
   await newActivity.save();
+  console.log("✅ Started new activity session:", newActivity.sessionId);
   return newActivity;
 }
 
 // Update activity session with duration
 async function updateActivitySession(sessionId, duration) {
-  await Activity.findOneAndUpdate(
+  if (!sessionId) {
+    throw new Error("SessionId is required for updating a session");
+  }
+
+  const result = await Activity.findOneAndUpdate(
     { sessionId, isActive: true },
     {
       duration: duration || 0,
       updatedAt: new Date()
     }
   );
+
+  if (!result) {
+    console.warn("⚠️ No active session found for sessionId:", sessionId);
+  } else {
+    console.log("🔄 Updated activity session:", sessionId, "duration:", duration);
+  }
+  
+  return result;
 }
 
 // End activity session
 async function endActivitySession(sessionId, endTime, finalDuration) {
-  await Activity.findOneAndUpdate(
+  if (!sessionId) {
+    throw new Error("SessionId is required for ending a session");
+  }
+
+  const result = await Activity.findOneAndUpdate(
     { sessionId, isActive: true },
     {
       endTime: endTime ? new Date(endTime) : new Date(),
@@ -113,6 +163,14 @@ async function endActivitySession(sessionId, endTime, finalDuration) {
       action: "close"
     }
   );
+
+  if (!result) {
+    console.warn("⚠️ No active session found for sessionId:", sessionId);
+  } else {
+    console.log("🔴 Ended activity session:", sessionId, "duration:", finalDuration);
+  }
+  
+  return result;
 }
 
 // Create a complete activity record (legacy support)
