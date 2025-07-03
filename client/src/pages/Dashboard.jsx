@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import BarChart from "../components/charts/BarChart";
 import AppList from "../components/charts/AppList";
+import { trackTimeOnDomain } from "../utils/tracker"; // ✅ Adjust path if needed
 
 const StatCard = ({ title, value, color }) => (
   <div className={`p-4 rounded-xl shadow-md text-white ${color}`}>
@@ -9,12 +11,54 @@ const StatCard = ({ title, value, color }) => (
   </div>
 );
 
+const formatTime = (timestamp) =>
+  new Date(timestamp).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+const formatDuration = (ms) => {
+  const totalMinutes = Math.floor(ms / 60000);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return `${hours} h ${minutes} min`;
+};
+
 const Dashboard = () => {
+  const [startTime, setStartTime] = useState(null);
+  const [endTime, setEndTime] = useState(null);
+  const [duration, setDuration] = useState(null);
+
+  useEffect(() => {
+    const stopTracking = trackTimeOnDomain("Dashboard");
+
+    axios
+      .get("http://localhost:3000/api/domain")
+      .then((res) => {
+        const data = res.data;
+        if (data.length > 0) {
+          const lastEntry = data[data.length - 1];
+          setStartTime(lastEntry.startTime);
+          setEndTime(lastEntry.endTime);
+          setDuration(lastEntry.duration);
+        }
+      })
+      .catch((err) => console.error("Error fetching domain logs:", err));
+
+    return () => stopTracking();
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-white p-6">
       <header className="mb-8">
-        <h1 className="text-3xl font-bold mb-1">Usage Yesterday, 24 June</h1>
-        <p className="text-lg text-gray-500 dark:text-gray-300">7 h 34 min</p>
+        <h1 className="text-3xl font-bold mb-1">Dashboard Usage</h1>
+        <p className="text-md text-gray-600 dark:text-gray-300">
+          Start: {startTime ? formatTime(startTime) : "Loading..."} — End:{" "}
+          {endTime ? formatTime(endTime) : "Loading..."}
+        </p>
+        <p className="text-md text-gray-600 dark:text-gray-300">
+          Duration: {duration ? formatDuration(duration) : "Loading..."}
+        </p>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -51,15 +95,7 @@ const Dashboard = () => {
             <AppList />
           </div>
         </div>
-
-        {/* Web Statistics (placeholder) */}
-        {/* <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4"> */}
-          {/* <h2 className="text-md font-semibold mb-2">Web Statistics</h2> */}
-          {/* <div className="h-40 bg-gray-100 dark:bg-gray-700 rounded-md flex items-center justify-center text-gray-400"> */}
-            {/* [ Line Chart Placeholder ] */}
-          </div>
-        {/* </div> */}
-    {/* //   </div> */}
+      </div>
 
       <footer className="mt-10 text-center text-sm text-gray-500 dark:text-gray-400">
         © 2025 Screentime Recorder. All rights reserved.
