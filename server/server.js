@@ -14,8 +14,18 @@ import { connectDB } from "./config/db.js";
 // Import routes
 import userRouter from "./routes/user.route.js";
 import authRouter from "./routes/auth.route.js";
+
+
+import trackingRouter from "./routes/tracking.route.js";
+
+import activityRouter from "./routes/activity.route.js"; // NEW updated 
+
+
+dotenv.config();
+
 import domainRouter from "./routes/domain.route.js"; // ✅ For domain time tracking
 import activityRouter from "./routes/activity.route.js"; // ✅ New activity route
+
 
 // App setup
 const app = express();
@@ -59,10 +69,20 @@ app.use(passport.session());
 // Routes
 app.use("/api/users", userRouter);
 app.use("/api/auth", authRouter);
+
+
+app.use("/api/tracking", trackingRouter);
+
+app.use("/api/activity", activityRouter); // ✅ New activity endpoint
+
+
+// Health Check
+
 app.use("/api/domain", domainRouter); // ✅ Time tracking
 app.use("/api/activity", activityRouter); // ✅ Activity logging
 
 // Health check route
+
 app.get("/api/health", (req, res) => {
   res.status(200).json({ message: "✅ Server is running!" });
 });
