@@ -56,6 +56,30 @@ export const AuthProvider = ({ children }) => {
     if (urlToken) {
       setToken(urlToken);
       localStorage.setItem('token', urlToken);
+      
+      // Send token to extension if available
+      try {
+        if (window.chrome && window.chrome.runtime) {
+          // Try to send to extension
+          chrome.runtime.sendMessage(
+            import.meta.env.VITE_APP_EXTENSION_ID,
+            {
+              type: "AUTH_SUCCESS",
+              token: urlToken
+            },
+            (response) => {
+              if (chrome.runtime.lastError) {
+                console.log("Extension communication failed:", chrome.runtime.lastError.message);
+              } else {
+                console.log("Token sent to extension:", response);
+              }
+            }
+          );
+        }
+      } catch (error) {
+        console.log("Extension not available:", error);
+      }
+      
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, []);

@@ -15,22 +15,51 @@ const activitySchema = new mongoose.Schema(
       type: Number,
       required: true
     },
-    timestamp: {
+    sessionId: {
+      type: String,
+      required: true // Unique session identifier for tracking continuous activity
+    },
+    startTime: {
       type: Date,
       required: true
     },
+    endTime: {
+      type: Date
+    },
     duration: {
-      type: Number, // in milliseconds or seconds
+      type: Number, // Total active time in milliseconds
       default: 0
     },
     domain: {
-      type: String
+      type: String,
+      required: true
+    },
+    title: {
+      type: String // Page title
+    },
+    action: {
+      type: String,
+      enum: ["visit", "focus", "blur", "close", "idle"],
+      default: "visit"
+    },
+    isActive: {
+      type: Boolean,
+      default: true // Whether this session is currently active
+    },
+    idleTime: {
+      type: Number, // Time spent idle in milliseconds
+      default: 0
     }
   },
   {
     timestamps: true
   }
 );
+
+// Index for efficient queries
+activitySchema.index({ userId: 1, domain: 1, startTime: -1 });
+activitySchema.index({ sessionId: 1 });
+activitySchema.index({ userId: 1, isActive: 1 });
 
 const Activity = mongoose.model("Activity", activitySchema);
 export default Activity;
