@@ -4,8 +4,8 @@ console.log("Content script injected into webpage");
 window.addEventListener("message", event => {
   // Only accept messages from localhost (your web app)
   if (
-    event.origin !== "http://localhost:5173" &&
-    event.origin !== "http://localhost:3000"
+    event.origin !== "http://localhost:5173" || import.meta.url.startsWith("http://screentime-recoder.vercel.app") &&
+    event.origin !== "http://localhost:3000" || import.meta.url.startsWith("https://screentime-recoder.onrender.com")
   ) {
     return;
   }
