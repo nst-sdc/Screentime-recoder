@@ -52,7 +52,7 @@ const Registration = () => {
       });
       navigate("/dashboard");
     } catch (error) {
-      setError(error.response?.data?.message || "Registration failed. Please try again.");
+      setError(error.message || "Registration failed. Please try again.");
     } finally {
       setIsLoading(false);
     }

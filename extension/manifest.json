@@ -6,7 +6,12 @@
   "permissions": ["storage", "tabs", "activeTab", "scripting"],
   "host_permissions": ["<all_urls>"],
   "externally_connectable": {
-    "matches": ["http://localhost:5173/*", "http://localhost:3000/*"]
+    "matches": [
+      "http://localhost:5173/*",
+      "http://localhost:3000/*",
+      "https://screentime-recoder.vercel.app/*",
+      "https://screentime-recoder.onrender.com/*"
+    ]
   },
   "background": {
     "service_worker": "background.js"

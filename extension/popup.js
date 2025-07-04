@@ -91,9 +91,7 @@ async function checkAuthStatus() {
 // Handle login button click
 loginBtn.addEventListener("click", () => {
   // Open the web app login page
-  chrome.tabs.create({
-    url: "http://localhost:5173/login"
-  });
+  chrome.tabs.create({ url: "https://screentime-recoder.vercel.app/login" });
 });
 
 // Handle logout button click
