@@ -5,18 +5,28 @@ dotenv.config();
 export const verifyToken = (req, res, next) => {
   const token = req.header("Authorization");
 
+  console.log("🔐 Token verification request:");
+  console.log(
+    "- Authorization header:",
+    token ? `Bearer ${token.slice(-10)}...` : "Missing"
+  );
+
   if (!token) {
+    console.log("❌ No token provided");
     return res.status(401).json({ message: "No token, authorization denied" });
   }
 
   const cleanToken = token.replace("Bearer ", "");
+  console.log("- Clean token length:", cleanToken.length);
+  console.log("- JWT_SECRET available:", !!process.env.JWT_SECRET);
 
   try {
     const decoded = jwt.verify(cleanToken, process.env.JWT_SECRET);
+    console.log("✅ Token verified for user:", decoded.id);
     req.user = decoded;
     next();
   } catch (error) {
-    console.error("Token verification error:", error);
+    console.error("❌ Token verification error:", error.message);
     return res.status(401).json({ message: "Token is not valid" });
   }
 };

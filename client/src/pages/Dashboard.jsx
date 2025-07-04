@@ -35,10 +35,18 @@ const Dashboard = () => {
   useEffect(() => {
     const stopTracking = trackTimeOnDomain("Dashboard");
 
+
     async function fetchActiveSessions() {
       try {
         const response = await axios.get("http://localhost:3000/api/activity/active");
         const data = response.data.data;
+
+    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+    axios
+      .get(`${API_BASE_URL}/domain`)
+      .then(res => {
+        const data = res.data;
+
         if (data.length > 0) {
           const lastEntry = data[0];
           setStartTime(new Date(lastEntry.startTime).getTime());
