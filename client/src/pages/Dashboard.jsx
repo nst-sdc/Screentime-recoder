@@ -35,21 +35,36 @@ const Dashboard = () => {
   useEffect(() => {
     const stopTracking = trackTimeOnDomain("Dashboard");
 
+
+    async function fetchActiveSessions() {
+      try {
+        const response = await axios.get("http://localhost:3000/api/activity/active");
+        const data = response.data.data;
+
     const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
     axios
       .get(`${API_BASE_URL}/domain`)
       .then(res => {
         const data = res.data;
-        if (data.length > 0) {
-          const lastEntry = data[data.length - 1];
-          setStartTime(lastEntry.startTime);
-          setEndTime(lastEntry.endTime);
-          setDuration(lastEntry.duration);
-        }
-      })
-      .catch(err => console.error("Error fetching domain logs:", err));
 
-    return () => stopTracking();
+        if (data.length > 0) {
+          const lastEntry = data[0];
+          setStartTime(new Date(lastEntry.startTime).getTime());
+          setEndTime(new Date(lastEntry.endTime || Date.now()).getTime());
+          setDuration(lastEntry.duration || (lastEntry.endTime ? lastEntry.endTime - lastEntry.startTime : Date.now() - lastEntry.startTime));
+        }
+      } catch (error) {
+        console.error("Error fetching active sessions:", error);
+      }
+    }
+
+    fetchActiveSessions();
+    const intervalId = setInterval(fetchActiveSessions, 30000);
+
+    return () => {
+      clearInterval(intervalId);
+      stopTracking();
+    };
   }, []);
 
   return (
