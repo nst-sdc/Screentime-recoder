@@ -35,8 +35,9 @@ const Dashboard = () => {
   useEffect(() => {
     const stopTracking = trackTimeOnDomain("Dashboard");
 
+    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
     axios
-      .get("http://localhost:3000/api/domain")
+      .get(`${API_BASE_URL}/domain`)
       .then(res => {
         const data = res.data;
         if (data.length > 0) {
