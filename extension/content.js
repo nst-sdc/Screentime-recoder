@@ -1,19 +1,20 @@
 console.log("Content script injected into webpage");
 
-// Listen for authentication messages from the web app
 window.addEventListener("message", event => {
-  // Only accept messages from localhost (your web app)
-  if (
-    event.origin !== "http://localhost:5173" || import.meta.url.startsWith("http://screentime-recoder.vercel.app") &&
-    event.origin !== "http://localhost:3000" || import.meta.url.startsWith("https://screentime-recoder.onrender.com")
-  ) {
+  const allowedOrigins = [
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "https://screentime-recoder.vercel.app",
+    "https://screentime-recoder.onrender.com"
+  ];
+
+  if (!allowedOrigins.includes(event.origin)) {
     return;
   }
 
   if (event.data.type === "EXTENSION_AUTH") {
     console.log("🔐 Received auth token from web app");
 
-    // Send token to background script
     chrome.runtime.sendMessage(
       {
         type: "SET_TOKEN",
@@ -23,7 +24,6 @@ window.addEventListener("message", event => {
         if (response && response.success) {
           console.log("✅ Token stored successfully in extension");
 
-          // Notify web app that extension is authenticated
           window.postMessage(
             {
               type: "EXTENSION_AUTH_SUCCESS",
@@ -37,8 +37,8 @@ window.addEventListener("message", event => {
   }
 });
 
-// Notify web app that extension is available
-if (window.location.hostname === "localhost") {
+const allowedHosts = ["localhost", "screentime-recoder.vercel.app"];
+if (allowedHosts.includes(window.location.hostname)) {
   window.postMessage(
     {
       type: "EXTENSION_AVAILABLE",
