@@ -24,7 +24,6 @@ router.post("/end-all", verifyToken, async (req, res) => {
   }
 });
 
-<<<<<<< HEAD
 // GET /api/activity - testing route (optional but useful)
 router.get("/", (req, res) => {
   res.status(200).json({ message: "Activity route works!" });
@@ -239,7 +238,5 @@ function formatDuration(ms) {
   return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
 }
 
-=======
->>>>>>> 31f7d23 (Fix syntax error in fetchActiveSessions function for real-time sync)
 export default router;
 
