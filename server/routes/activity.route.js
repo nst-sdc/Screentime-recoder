@@ -4,7 +4,8 @@ import User from "../models/user.model.js";
 import categorizeDomain from "../utils/category.util.js";
 import {
   logActivity,
-  getActivitySummary
+  getActivitySummary,
+  getActivitySummaryByCategory
 } from "../controllers/activity.controller.js";
 import { verifyToken } from "../middleware/auth.js";
 
@@ -18,6 +19,9 @@ router.post("/", verifyToken, logActivity);
 
 // GET /api/activity/summary - get user's activity summary
 router.get("/summary", verifyToken, getActivitySummary);
+
+// ✅ New route: GET summary grouped by category
+router.get("/summary/category", verifyToken, getActivitySummaryByCategory);
 
 // GET /api/activity/active - get currently active sessions
 router.get("/active", verifyToken, async (req, res) => {
@@ -84,10 +88,6 @@ router.post("/track", verifyToken, async (req, res) => {
 
   try {
     await newActivity.save();
-
-    // Update the user's category based on visited website (if User model has category field)
-    // await User.findByIdAndUpdate(req.user.id, { category });
-
     res.status(201).json({ message: "Activity recorded", category, domain });
   } catch (err) {
     console.error("Error recording activity:", err);

@@ -1,6 +1,8 @@
 import Activity from "../models/activity.model.js";
 import { extractDomain } from "../utils/extractDomain.js";
+import categorizeDomain from "../utils/category.util.js";
 
+// Log activity (called by extension or frontend)
 export const logActivity = async (req, res) => {
   try {
     const {
@@ -18,37 +20,24 @@ export const logActivity = async (req, res) => {
     }
 
     const domain = extractDomain(url);
-
     if (!domain) {
       return res.status(400).json({ success: false, message: "Invalid URL" });
     }
 
-    // Handle different types of activity logging
     switch (action) {
       case "start":
-        // Start a new activity session
-        await startActivitySession(
-          req.user.id,
-          tabId,
-          url,
-          domain,
-          title,
-          sessionId
-        );
+        await startActivitySession(req.user.id, tabId, url, domain, title, sessionId);
         break;
 
       case "update":
-        // Update existing session with duration
         await updateActivitySession(sessionId, duration);
         break;
 
       case "end":
-        // End activity session
         await endActivitySession(sessionId, endTime, duration);
         break;
 
       default:
-        // Legacy support - create a complete activity record
         await createActivity(req.user.id, tabId, url, domain, title, duration);
     }
 
@@ -66,15 +55,8 @@ export const logActivity = async (req, res) => {
   }
 };
 
-// Start a new activity session
-async function startActivitySession(
-  userId,
-  tabId,
-  url,
-  domain,
-  title,
-  sessionId
-) {
+// Start a new session-based activity
+async function startActivitySession(userId, tabId, url, domain, title, sessionId) {
   const newActivity = new Activity({
     userId,
     url,
@@ -88,10 +70,9 @@ async function startActivitySession(
   });
 
   await newActivity.save();
-  return newActivity;
 }
 
-// Update activity session with duration
+// Update existing session (typically with duration)
 async function updateActivitySession(sessionId, duration) {
   await Activity.findOneAndUpdate(
     { sessionId, isActive: true },
@@ -102,7 +83,7 @@ async function updateActivitySession(sessionId, duration) {
   );
 }
 
-// End activity session
+// End a session
 async function endActivitySession(sessionId, endTime, finalDuration) {
   await Activity.findOneAndUpdate(
     { sessionId, isActive: true },
@@ -115,7 +96,7 @@ async function endActivitySession(sessionId, endTime, finalDuration) {
   );
 }
 
-// Create a complete activity record (legacy support)
+// One-off log without session
 async function createActivity(userId, tabId, url, domain, title, duration) {
   const sessionId = `${userId}_${tabId}_${Date.now()}`;
   const now = new Date();
@@ -135,10 +116,9 @@ async function createActivity(userId, tabId, url, domain, title, duration) {
   });
 
   await newActivity.save();
-  return newActivity;
 }
 
-// Get user's activity summary
+// ✅ Summary of activity grouped by domain or URL
 export const getActivitySummary = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -168,16 +148,74 @@ export const getActivitySummary = async (req, res) => {
 
     const summary = await Activity.aggregate(pipeline);
 
-    res.json({
+    res.status(200).json({
       success: true,
       data: summary,
       totalRecords: summary.length
     });
   } catch (error) {
-    console.error("Error getting activity summary:", error);
+    console.error("Error getting activity summary:", error); 
     res.status(500).json({
       success: false,
       message: "Failed to get activity summary"
+    });
+  }
+};
+
+// ✅ NEW: Summary of activity grouped by category
+export const getActivitySummaryByCategory = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { startDate, endDate } = req.query;
+
+    const matchQuery = { userId };
+    if (startDate || endDate) {
+      matchQuery.startTime = {};
+      if (startDate) matchQuery.startTime.$gte = new Date(startDate);
+      if (endDate) matchQuery.startTime.$lte = new Date(endDate);
+    }
+
+    const activities = await Activity.find(matchQuery);
+
+    const summaryMap = {};
+
+    for (const activity of activities) {
+      const category = categorizeDomain(activity.domain);
+      if (!summaryMap[category]) {
+        summaryMap[category] = {
+          totalDuration: 0,
+          sessionCount: 0,
+          lastVisit: null
+        };
+      }
+
+      summaryMap[category].totalDuration += activity.duration || 0;
+      summaryMap[category].sessionCount += 1;
+      if (
+        !summaryMap[category].lastVisit ||
+        activity.startTime > summaryMap[category].lastVisit
+      ) {
+        summaryMap[category].lastVisit = activity.startTime;
+      }
+    }
+
+    const summary = Object.entries(summaryMap).map(([category, data]) => ({
+      category,
+      ...data
+    }));
+
+    summary.sort((a, b) => b.totalDuration - a.totalDuration);
+
+    res.status(200).json({
+      success: true,
+      data: summary,
+      totalRecords: summary.length
+    });
+  } catch (error) {
+    console.error("Error getting category summary:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to get activity summary by category"
     });
   }
 };
