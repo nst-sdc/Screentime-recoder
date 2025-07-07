@@ -1,3 +1,4 @@
+// ✅ Final merged and conflict-free activity.controller.js
 import Activity from "../models/activity.model.js";
 import { extractDomain } from "../utils/extractDomain.js";
 import categorizeDomain from "../utils/category.util.js";
@@ -5,6 +6,9 @@ import categorizeDomain from "../utils/category.util.js";
 // Log activity (called by extension or frontend)
 export const logActivity = async (req, res) => {
   try {
+    console.log("📊 Activity log request:", req.body);
+    console.log("🔑 User:", req.user?.id);
+
     const {
       tabId,
       url,
@@ -16,37 +20,71 @@ export const logActivity = async (req, res) => {
     } = req.body;
 
     if (!req.user || !req.user.id) {
+      console.error("❌ Unauthorized - no user in request");
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
-    const domain = extractDomain(url);
-    if (!domain) {
-      return res.status(400).json({ success: false, message: "Invalid URL" });
+    // Validate required fields based on action
+    if (!action) {
+      console.error("❌ Missing action field");
+      return res.status(400).json({ success: false, message: "Action is required" });
+    }
+
+    if (!url && action === "start") {
+      console.error("❌ Missing URL for start action");
+      return res.status(400).json({ success: false, message: "URL is required for start action" });
+    }
+
+    if (!sessionId && (action === "update" || action === "end")) {
+      console.error("❌ Missing sessionId for update/end action");
+      return res.status(400).json({ success: false, message: "SessionId is required for update/end actions" });
+    }
+
+    // Extract domain only if URL is provided
+    let domain = null;
+    if (url) {
+      domain = extractDomain(url);
+      if (!domain) {
+        console.error("❌ Invalid URL:", url);
+        return res.status(400).json({ success: false, message: "Invalid URL" });
+      }
     }
 
     switch (action) {
       case "start":
-        await startActivitySession(req.user.id, tabId, url, domain, title, sessionId);
+        console.log("🟢 Starting new session");
+        await startActivitySession(
+          req.user.id,
+          tabId,
+          url,
+          domain,
+          title,
+          sessionId
+        );
         break;
 
       case "update":
+        console.log("🔄 Updating session:", sessionId);
         await updateActivitySession(sessionId, duration);
         break;
 
       case "end":
+        console.log("🔴 Ending session:", sessionId);
         await endActivitySession(sessionId, endTime, duration);
         break;
 
       default:
+        console.log("📝 Creating legacy activity record");
         await createActivity(req.user.id, tabId, url, domain, title, duration);
     }
 
+    console.log("✅ Activity logged successfully");
     res.status(201).json({
       success: true,
       message: "Activity logged successfully"
     });
   } catch (error) {
-    console.error("Activity logging failed:", error);
+    console.error("❌ Activity logging failed:", error);
     res.status(500).json({
       success: false,
       message: "Internal server error",
@@ -55,37 +93,59 @@ export const logActivity = async (req, res) => {
   }
 };
 
-// Start a new session-based activity
+// Start a new activity session
 async function startActivitySession(userId, tabId, url, domain, title, sessionId) {
+  if (!url || !domain) {
+    throw new Error("URL and domain are required for starting a session");
+  }
+
   const newActivity = new Activity({
     userId,
     url,
-    tabId,
-    sessionId: sessionId || `${userId}_${tabId}_${Date.now()}`,
+    tabId: tabId || 0,
+    sessionId: sessionId || `${userId}_${tabId || 0}_${Date.now()}`,
     startTime: new Date(),
     domain,
-    title,
+    title: title || '',
     action: "visit",
     isActive: true
   });
 
   await newActivity.save();
+  console.log("✅ Started new activity session:", newActivity.sessionId);
+  return newActivity;
 }
 
 // Update existing session (typically with duration)
 async function updateActivitySession(sessionId, duration) {
-  await Activity.findOneAndUpdate(
+  if (!sessionId) {
+    throw new Error("SessionId is required for updating a session");
+  }
+
+  const result = await Activity.findOneAndUpdate(
     { sessionId, isActive: true },
     {
       duration: duration || 0,
       updatedAt: new Date()
     }
   );
+
+  if (!result) {
+    console.warn("⚠️ No active session found for sessionId:", sessionId);
+  } else {
+    console.log("🔄 Updated activity session:", sessionId, "duration:", duration);
+  }
+
+  return result;
 }
 
 // End a session
 async function endActivitySession(sessionId, endTime, finalDuration) {
-  await Activity.findOneAndUpdate(
+  if (!sessionId) {
+    throw new Error("SessionId is required for ending a session");
+  }
+
+  const result = await Activity.findOneAndUpdate(
     { sessionId, isActive: true },
     {
       endTime: endTime ? new Date(endTime) : new Date(),
@@ -94,6 +154,14 @@ async function endActivitySession(sessionId, endTime, finalDuration) {
       action: "close"
     }
   );
+
+  if (!result) {
+    console.warn("⚠️ No active session found for sessionId:", sessionId);
+  } else {
+    console.log("🔴 Ended activity session:", sessionId, "duration:", finalDuration);
+  }
+
+  return result;
 }
 
 // One-off log without session
@@ -154,7 +222,7 @@ export const getActivitySummary = async (req, res) => {
       totalRecords: summary.length
     });
   } catch (error) {
-    console.error("Error getting activity summary:", error); 
+    console.error("Error getting activity summary:", error);
     res.status(500).json({
       success: false,
       message: "Failed to get activity summary"
@@ -191,10 +259,7 @@ export const getActivitySummaryByCategory = async (req, res) => {
 
       summaryMap[category].totalDuration += activity.duration || 0;
       summaryMap[category].sessionCount += 1;
-      if (
-        !summaryMap[category].lastVisit ||
-        activity.startTime > summaryMap[category].lastVisit
-      ) {
+      if (!summaryMap[category].lastVisit || activity.startTime > summaryMap[category].lastVisit) {
         summaryMap[category].lastVisit = activity.startTime;
       }
     }

@@ -10,7 +10,8 @@ export function trackTimeOnDomain(domainName) {
 
         console.log(`Time spent on ${domainName}: ${timeSpentSec} seconds`);
 
-        fetch("http://localhost:3000/api/domain/track", {
+        const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+        fetch(`${API_BASE_URL}/domain/track`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

@@ -4,20 +4,23 @@ import BarChart from "../components/charts/BarChart";
 import AppList from "../components/charts/AppList";
 import { trackTimeOnDomain } from "../utils/tracker"; // ✅ Adjust path if needed
 
-const StatCard = ({ title, value, color }) => (
+const StatCard = ({ title, value, color }) =>
   <div className={`p-4 rounded-xl shadow-md text-white ${color}`}>
-    <h4 className="text-sm">{title}</h4>
-    <p className="text-2xl font-bold">{value}</p>
-  </div>
-);
+    <h4 className="text-sm">
+      {title}
+    </h4>
+    <p className="text-2xl font-bold">
+      {value}
+    </p>
+  </div>;
 
-const formatTime = (timestamp) =>
+const formatTime = timestamp =>
   new Date(timestamp).toLocaleTimeString([], {
     hour: "2-digit",
-    minute: "2-digit",
+    minute: "2-digit"
   });
 
-const formatDuration = (ms) => {
+const formatDuration = ms => {
   const totalMinutes = Math.floor(ms / 60000);
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
@@ -32,9 +35,10 @@ const Dashboard = () => {
   useEffect(() => {
     const stopTracking = trackTimeOnDomain("Dashboard");
 
+    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
     axios
-      .get("http://localhost:3000/api/domain")
-      .then((res) => {
+      .get(`${API_BASE_URL}/domain`)
+      .then(res => {
         const data = res.data;
         if (data.length > 0) {
           const lastEntry = data[data.length - 1];
@@ -43,7 +47,7 @@ const Dashboard = () => {
           setDuration(lastEntry.duration);
         }
       })
-      .catch((err) => console.error("Error fetching domain logs:", err));
+      .catch(err => console.error("Error fetching domain logs:", err));
 
     return () => stopTracking();
   }, []);
@@ -70,7 +74,7 @@ const Dashboard = () => {
               { category: "Productivity", minutes: 163, color: "#4caf50" },
               { category: "Communication", minutes: 81, color: "#00bcd4" },
               { category: "Creativity", minutes: 152, color: "#9c27b0" },
-              { category: "Others", minutes: 41, color: "#ffeb3b" },
+              { category: "Others", minutes: 41, color: "#ffeb3b" }
             ]}
           />
           <div className="flex justify-around text-sm text-gray-600 dark:text-gray-400 mt-4">
@@ -84,7 +88,11 @@ const Dashboard = () => {
         {/* Stats */}
         <StatCard title="Time At Work" value="2 h 43 min" color="bg-blue-500" />
         <StatCard title="Creativity" value="2 h 32 min" color="bg-purple-500" />
-        <StatCard title="Communication" value="1 h 21 min" color="bg-cyan-400" />
+        <StatCard
+          title="Communication"
+          value="1 h 21 min"
+          color="bg-cyan-400"
+        />
         <StatCard title="Productivity" value="1 h 21 min" color="bg-pink-400" />
         <StatCard title="Others" value="41 min" color="bg-green-400" />
 
