@@ -1,8 +1,10 @@
 import Activity from "../models/activity.model.js";
 import { extractDomain } from "../utils/extractDomain.js";
+import redis from "../utils/redisClient.js";
 
 export const logActivity = async (req, res) => {
   try {
+<<<<<<< HEAD
     console.log("📊 Activity log request:", req.body);
     console.log("🔑 User:", req.user?.id);
     
@@ -60,21 +62,40 @@ export const logActivity = async (req, res) => {
           title,
           sessionId
         );
-        break;
+=======
+    const { tabId, url, sessionId, action, title, duration, endTime } = req.body;
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ success: false, message: "Unauthorized" });
+    if (!url || !sessionId || !action) return res.status(400).json({ success: false, message: "Missing required fields" });
+    const domain = extractDomain(url);
+    if (!domain) return res.status(400).json({ success: false, message: "Invalid URL" });
 
+    let activity;
+    switch (action) {
+      case "start":
+        activity = await new Activity({ userId, tabId, url, domain, title, sessionId, startTime: new Date(), action, isActive: true }).save();
+>>>>>>> 31f7d23 (Fix syntax error in fetchActiveSessions function for real-time sync)
+        break;
       case "update":
+<<<<<<< HEAD
         // Update existing session with duration
         console.log("🔄 Updating session:", sessionId);
         await updateActivitySession(sessionId, duration);
+=======
+        await Activity.findOneAndUpdate({ sessionId, isActive: true }, { duration, updatedAt: new Date() });
+>>>>>>> 31f7d23 (Fix syntax error in fetchActiveSessions function for real-time sync)
         break;
-
       case "end":
+<<<<<<< HEAD
         // End activity session
         console.log("🔴 Ending session:", sessionId);
         await endActivitySession(sessionId, endTime, duration);
+=======
+        await Activity.findOneAndUpdate({ sessionId, isActive: true }, { endTime: endTime ? new Date(endTime) : new Date(), duration, isActive: false, action });
+>>>>>>> 31f7d23 (Fix syntax error in fetchActiveSessions function for real-time sync)
         break;
-
       default:
+<<<<<<< HEAD
         // Legacy support - create a complete activity record
         console.log("📝 Creating legacy activity record");
         await createActivity(req.user.id, tabId, url, domain, title, duration);
@@ -197,45 +218,50 @@ async function createActivity(userId, tabId, url, domain, title, duration) {
 }
 
 // Get user's activity summary
+=======
+        activity = await new Activity({ userId, tabId, url, domain, title, sessionId, startTime: new Date(), endTime: new Date(), duration, action, isActive: false }).save();
+    }
+
+    const liveData = { sessionId, domain, url, title, duration, startTime: activity?.startTime || new Date() };
+    await redis.publish(`user:${userId}:live`, JSON.stringify(liveData));
+
+    return res.status(201).json({ success: true });
+  } catch (err) {
+    console.error("logActivity error:", err);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+>>>>>>> 31f7d23 (Fix syntax error in fetchActiveSessions function for real-time sync)
 export const getActivitySummary = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { startDate, endDate, groupBy = "domain" } = req.query;
+    const data = await Activity.aggregate([
+      { $match: { userId } },
+      { $group: { _id: "$domain", totalDuration: { $sum: "$duration" }, sessionCount: { $sum: 1 }, lastVisit: { $max: "$startTime" } } },
+      { $sort: { totalDuration: -1 } }
+    ]);
+    return res.json({ success: true, data });
+  } catch (err) {
+    console.error("getActivitySummary error:", err);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
 
-    const matchQuery = { userId };
-
-    if (startDate || endDate) {
-      matchQuery.startTime = {};
-      if (startDate) matchQuery.startTime.$gte = new Date(startDate);
-      if (endDate) matchQuery.startTime.$lte = new Date(endDate);
-    }
-
-    const pipeline = [
-      { $match: matchQuery },
-      {
-        $group: {
-          _id: groupBy === "domain" ? "$domain" : "$url",
-          totalDuration: { $sum: "$duration" },
-          sessionCount: { $sum: 1 },
-          lastVisit: { $max: "$startTime" }
-        }
-      },
-      { $sort: { totalDuration: -1 } },
-      { $limit: 50 }
-    ];
-
-    const summary = await Activity.aggregate(pipeline);
-
-    res.json({
-      success: true,
-      data: summary,
-      totalRecords: summary.length
-    });
-  } catch (error) {
-    console.error("Error getting activity summary:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to get activity summary"
-    });
+export const getLiveActivity = async (req, res) => {
+  try {
+    const activities = await Activity.find({ userId: req.user.id, isActive: true }).sort({ startTime: -1 });
+    const data = activities.map(a => ({
+      sessionId: a.sessionId,
+      domain: a.domain,
+      url: a.url,
+      title: a.title,
+      duration: a.duration,
+      startTime: a.startTime
+    }));
+    return res.json({ success: true, data });
+  } catch (err) {
+    console.error("getLiveActivity error:", err);
+    return res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
