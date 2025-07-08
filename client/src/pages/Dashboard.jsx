@@ -2,60 +2,65 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import BarChart from "../components/charts/BarChart";
 import AppList from "../components/charts/AppList";
-import { trackTimeOnDomain } from "../utils/tracker"; // ✅ Adjust path if needed
+import { trackTimeOnDomain } from "../utils/tracker";
 
-const StatCard = ({ title, value, color }) =>
-  <div className={`p-4 rounded-xl shadow-md text-white ${color}`}>
-    <h4 className="text-sm">
-      {title}
-    </h4>
-    <p className="text-2xl font-bold">
-      {value}
-    </p>
-  </div>;
-
-const formatTime = timestamp =>
+// Helper to format time
+const formatTime = (timestamp) =>
   new Date(timestamp).toLocaleTimeString([], {
     hour: "2-digit",
-    minute: "2-digit"
+    minute: "2-digit",
   });
 
-const formatDuration = ms => {
-  const totalMinutes = Math.floor(ms / 60000);
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-  return `${hours} h ${minutes} min`;
+// Helper to format duration
+const formatDuration = (ms) => {
+  const minutes = Math.floor(ms / 60000);
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return h > 0 ? `${h} h ${m} min` : `${m} min`;
 };
 
+// Reusable card
+const StatCard = ({ title, value, color }) => (
+  <div className={`p-4 rounded-xl shadow-md text-white ${color}`}>
+    <h4 className="text-sm">{title}</h4>
+    <p className="text-2xl font-bold">{value}</p>
+  </div>
+);
+
 const Dashboard = () => {
-  const [startTime, setStartTime] = useState(null);
-  const [endTime, setEndTime] = useState(null);
-  const [duration, setDuration] = useState(null);
+  const [apps, setApps] = useState([]);
+  const [totalDuration, setTotalDuration] = useState(0);
+  const [totalTabs, setTotalTabs] = useState(0);
+
+  const fetchLiveActivity = async () => {
+    try {
+      const res = await axios.get("http://localhost:3000/api/activity/active", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      const activityData = res.data.data || [];
+
+      const total = activityData.reduce((sum, curr) => sum + (curr.duration || 0), 0);
+
+      setApps(activityData);
+      setTotalDuration(total);
+      setTotalTabs(activityData.length);
+    } catch (err) {
+      console.error("❌ Error fetching live activity data:", err);
+    }
+  };
 
   useEffect(() => {
     const stopTracking = trackTimeOnDomain("Dashboard");
 
-    const fetchActiveSessions = async () => {
-      try {
-        const response = await axios.get("http://localhost:3000/api/activity/active");
-        const data = response.data.data;
-        if (data.length > 0) {
-          const lastEntry = data[0];
-          setStartTime(new Date(lastEntry.startTime).getTime());
-          setEndTime(new Date(lastEntry.endTime || Date.now()).getTime());
-          setDuration(lastEntry.duration || (lastEntry.endTime ? lastEntry.endTime - lastEntry.startTime : Date.now() - lastEntry.startTime));
-        }
-      } catch (error) {
-        console.error("Error fetching active sessions:", error);
-      }
-    };
-
-    fetchActiveSessions();
-    const intervalId = setInterval(fetchActiveSessions, 30000);
+    fetchLiveActivity();
+    const interval = setInterval(fetchLiveActivity, 30000);
 
     return () => {
-      clearInterval(intervalId);
       stopTracking();
+      clearInterval(interval);
     };
   }, []);
 
@@ -64,11 +69,7 @@ const Dashboard = () => {
       <header className="mb-8">
         <h1 className="text-3xl font-bold mb-1">Dashboard Usage</h1>
         <p className="text-md text-gray-600 dark:text-gray-300">
-          Start: {startTime ? formatTime(startTime) : "Loading..."} — End:{" "}
-          {endTime ? formatTime(endTime) : "Loading..."}
-        </p>
-        <p className="text-md text-gray-600 dark:text-gray-300">
-          Duration: {duration ? formatDuration(duration) : "Loading..."}
+          Duration: {formatDuration(totalDuration)}
         </p>
       </header>
 
@@ -77,38 +78,37 @@ const Dashboard = () => {
         <div className="col-span-1 md:col-span-2 lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-md p-4">
           <h2 className="text-md font-semibold mb-2">Screen Time Overview</h2>
           <BarChart
-            data={[
-              { category: "Productivity", minutes: 163, color: "#4caf50" },
-              { category: "Communication", minutes: 81, color: "#00bcd4" },
-              { category: "Creativity", minutes: 152, color: "#9c27b0" },
-              { category: "Others", minutes: 41, color: "#ffeb3b" }
-            ]}
+            data={
+              apps.map((app) => ({
+                category: app.domain || app.url || app.title || "Unknown",
+                minutes: Math.floor((app.duration || 0) / 60000),
+                color: "#4caf50",
+              })) || []
+            }
           />
           <div className="flex justify-around text-sm text-gray-600 dark:text-gray-400 mt-4">
-            <div>🟩 Productivity</div>
-            <div>🟦 Communication</div>
-            <div>🟪 Creativity</div>
-            <div>🟨 Others</div>
+            <div>🟩 Websites/Apps</div>
           </div>
         </div>
 
         {/* Stats */}
-        <StatCard title="Time At Work" value="2 h 43 min" color="bg-blue-500" />
-        <StatCard title="Creativity" value="2 h 32 min" color="bg-purple-500" />
         <StatCard
-          title="Communication"
-          value="1 h 21 min"
-          color="bg-cyan-400"
+          title="Total Active Time"
+          value={formatDuration(totalDuration)}
+          color="bg-blue-500"
         />
-        <StatCard title="Productivity" value="1 h 21 min" color="bg-pink-400" />
-        <StatCard title="Others" value="41 min" color="bg-green-400" />
+        <StatCard
+          title="Active Tabs"
+          value={totalTabs}
+          color="bg-purple-500"
+        />
+      </div>
 
-        {/* App List */}
-        <div className="col-span-1 md:col-span-2 lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-md p-4">
-          <h2 className="text-md font-semibold mb-2">Applications</h2>
-          <div className="h-48 overflow-y-auto">
-            <AppList />
-          </div>
+      {/* App List */}
+      <div className="mt-6 bg-white dark:bg-gray-800 rounded-xl shadow-md p-4">
+        <h2 className="text-md font-semibold mb-2">Applications</h2>
+        <div className="h-60 overflow-y-auto">
+          <AppList apps={apps} />
         </div>
       </div>
 
