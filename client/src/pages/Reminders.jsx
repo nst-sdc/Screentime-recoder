@@ -283,7 +283,7 @@ const Reminders = () => {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent mb-2">
-            🧠 Smart Reminder Settings
+             Smart Reminder Settings
           </h1>
           <p className="text-gray-600 dark:text-gray-300 text-lg">
             Set up intelligent reminders to boost your productivity
@@ -351,13 +351,10 @@ const Reminders = () => {
                   />
                 </div>
 
-                {/* Target Inputs */}
                 {renderTargetInputs()}
 
-                {/* Time Input */}
                 {renderTimeInput()}
 
-                {/* Repeat Options */}
                 {renderRepeatOptions()}
 
                 {/* Notification Type */}
