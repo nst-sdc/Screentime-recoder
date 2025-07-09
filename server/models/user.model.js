@@ -6,48 +6,52 @@ const userSchema = new mongoose.Schema(
     googleId: {
       type: String,
       unique: true,
-      sparse: true
+      sparse: true,
     },
     name: {
       type: String,
-      required: true
+      required: true,
     },
     email: {
       type: String,
       required: true,
-      unique: true
+      unique: true,
     },
     picture: {
-      type: String
+      type: String,
     },
     lastLogin: {
       type: Date,
-      default: Date.now
+      default: Date.now,
     },
     password: {
       type: String,
-      required: function() {
+      required: function () {
         return this.provider === "local";
-      }
+      },
     },
     provider: {
       type: String,
       enum: ["google", "local"],
-      default: "local"
+      default: "local",
     },
     isEmailVerified: {
       type: Boolean,
-      default: function() {
+      default: function () {
         return this.provider === "google";
-      }
-    }
+      },
+    },
+    category: {
+      type: String,
+      default: "Uncategorized",
+    },
   },
   {
-    timestamps: true
+    timestamps: true,
   }
 );
 
-userSchema.pre("save", async function(next) {
+userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
 
   if (this.provider === "google") return next();
@@ -61,12 +65,12 @@ userSchema.pre("save", async function(next) {
   }
 });
 
-userSchema.methods.comparePassword = async function(candidatePassword) {
+userSchema.methods.comparePassword = async function (candidatePassword) {
   if (!this.password) return false;
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-userSchema.statics.findByCredentials = async function(email, password) {
+userSchema.statics.findByCredentials = async function (email, password) {
   const user = await this.findOne({ email, provider: "local" });
 
   if (!user) {

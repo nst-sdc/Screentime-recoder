@@ -17,6 +17,9 @@ import authRouter from "./routes/auth.route.js";
 import domainRouter from "./routes/domain.route.js"; // ✅ For domain time tracking
 import activityRouter from "./routes/activity.route.js"; // ✅ New activity route
 
+import cron from "node-cron";
+import { deleteOldActivity } from "./utils/dataCleanup.js";
+
 // App setup
 const app = express();
 const port = process.env.PORT || 3000;
@@ -69,7 +72,13 @@ app.get("/api/health", (req, res) => {
 
 // Start server
 app.listen(port, () => {
+  connectDB();
   console.log("✅ Connected to MongoDB");
   console.log(`🚀 Server listening on port ${port}`);
-});
 
+  // Run automatic cleanup every day at 12 AM
+  cron.schedule("0 0 * * *", () => {
+    console.log("🕛 Running automatic data cleanup...");
+    deleteOldActivity();
+  });
+});
