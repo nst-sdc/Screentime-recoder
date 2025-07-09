@@ -26,7 +26,7 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: function () {
+      required: function() {
         return this.provider === "local";
       }
     },
@@ -37,7 +37,7 @@ const userSchema = new mongoose.Schema(
     },
     isEmailVerified: {
       type: Boolean,
-      default: function () {
+      default: function() {
         return this.provider === "google";
       }
     }
@@ -47,7 +47,7 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-userSchema.pre("save", async function (next) {
+userSchema.pre("save", async function(next) {
   if (!this.isModified("password")) return next();
 
   if (this.provider === "google") return next();
@@ -61,12 +61,12 @@ userSchema.pre("save", async function (next) {
   }
 });
 
-userSchema.methods.comparePassword = async function (candidatePassword) {
+userSchema.methods.comparePassword = async function(candidatePassword) {
   if (!this.password) return false;
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-userSchema.statics.findByCredentials = async function (email, password) {
+userSchema.statics.findByCredentials = async function(email, password) {
   const user = await this.findOne({ email, provider: "local" });
 
   if (!user) {

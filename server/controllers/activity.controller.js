@@ -1,12 +1,7 @@
 import Activity from "../models/activity.model.js";
 import { extractDomain } from "../utils/extractDomain.js";
-import mongoose from "mongoose";
 
-// Log Activity Handler
 export const logActivity = async (req, res) => {
-  console.log("Received request:", req.body);
-  console.log("Authenticated user ID:", req.user?.id);
-
   try {
     const {
       tabId,
@@ -22,30 +17,45 @@ export const logActivity = async (req, res) => {
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
-    let domain = null;
-    if (url) {
-      domain = extractDomain(url);
+    const domain = extractDomain(url);
+
+    if (!domain) {
+      return res.status(400).json({ success: false, message: "Invalid URL" });
     }
 
-    if (action === "start" && !domain) {
-      return res.status(400).json({ success: false, message: "Invalid URL on start" });
-    }
-
+    // Handle different types of activity logging
     switch (action) {
       case "start":
-        await startActivitySession(req.user.id, tabId, url, domain, title, sessionId);
+        // Start a new activity session
+        await startActivitySession(
+          req.user.id,
+          tabId,
+          url,
+          domain,
+          title,
+          sessionId
+        );
         break;
+
       case "update":
+        // Update existing session with duration
         await updateActivitySession(sessionId, duration);
         break;
+
       case "end":
+        // End activity session
         await endActivitySession(sessionId, endTime, duration);
         break;
+
       default:
+        // Legacy support - create a complete activity record
         await createActivity(req.user.id, tabId, url, domain, title, duration);
     }
 
-    res.status(201).json({ success: true, message: "Activity logged successfully" });
+    res.status(201).json({
+      success: true,
+      message: "Activity logged successfully"
+    });
   } catch (error) {
     console.error("Activity logging failed:", error);
     res.status(500).json({
@@ -56,9 +66,15 @@ export const logActivity = async (req, res) => {
   }
 };
 
-// ---------------------- Helpers -----------------------
-
-async function startActivitySession(userId, tabId, url, domain, title, sessionId) {
+// Start a new activity session
+async function startActivitySession(
+  userId,
+  tabId,
+  url,
+  domain,
+  title,
+  sessionId
+) {
   const newActivity = new Activity({
     userId,
     url,
@@ -71,16 +87,11 @@ async function startActivitySession(userId, tabId, url, domain, title, sessionId
     isActive: true
   });
 
-  try {
-    await newActivity.save();
-    console.log("✅ MongoDB save SUCCESS");
-  } catch (err) {
-    console.error("❌ MongoDB save FAILED:", err);
-  }
-
+  await newActivity.save();
   return newActivity;
 }
 
+// Update activity session with duration
 async function updateActivitySession(sessionId, duration) {
   await Activity.findOneAndUpdate(
     { sessionId, isActive: true },
@@ -91,6 +102,7 @@ async function updateActivitySession(sessionId, duration) {
   );
 }
 
+// End activity session
 async function endActivitySession(sessionId, endTime, finalDuration) {
   await Activity.findOneAndUpdate(
     { sessionId, isActive: true },
@@ -103,6 +115,7 @@ async function endActivitySession(sessionId, endTime, finalDuration) {
   );
 }
 
+// Create a complete activity record (legacy support)
 async function createActivity(userId, tabId, url, domain, title, duration) {
   const sessionId = `${userId}_${tabId}_${Date.now()}`;
   const now = new Date();
@@ -125,16 +138,13 @@ async function createActivity(userId, tabId, url, domain, title, duration) {
   return newActivity;
 }
 
-// ---------------------- Summary API -----------------------
-
+// Get user's activity summary
 export const getActivitySummary = async (req, res) => {
   try {
     const userId = req.user.id;
     const { startDate, endDate, groupBy = "domain" } = req.query;
 
-    const matchQuery = {
-      userId: new mongoose.Types.ObjectId(userId),
-    };
+    const matchQuery = { userId };
 
     if (startDate || endDate) {
       matchQuery.startTime = {};
@@ -146,7 +156,7 @@ export const getActivitySummary = async (req, res) => {
       { $match: matchQuery },
       {
         $group: {
-          _id: groupBy === "url" ? "$url" : "$domain",
+          _id: groupBy === "domain" ? "$domain" : "$url",
           totalDuration: { $sum: "$duration" },
           sessionCount: { $sum: 1 },
           lastVisit: { $max: "$startTime" }
@@ -158,7 +168,7 @@ export const getActivitySummary = async (req, res) => {
 
     const summary = await Activity.aggregate(pipeline);
 
-    res.status(200).json({
+    res.json({
       success: true,
       data: summary,
       totalRecords: summary.length
