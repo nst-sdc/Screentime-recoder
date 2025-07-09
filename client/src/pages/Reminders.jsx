@@ -97,7 +97,7 @@ const Reminders = () => {
       return (
         <div className="space-y-3">
           <label className="block text-sm font-semibold text-emerald-700 dark:text-emerald-300">
-            🎯 Target
+            Target
           </label>
           <select
             name="targetType"
@@ -116,10 +116,10 @@ const Reminders = () => {
               onChange={handleChange}
               className="w-full p-3 bg-white text-gray-900 dark:bg-slate-800 dark:text-white rounded-xl border-2 border-emerald-200 dark:border-emerald-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 dark:focus:ring-emerald-800 transition-all duration-200 shadow-sm"
             >
-              <option value="productivity">📊 Productivity</option>
-              <option value="creativity">🎨 Creativity</option>
-              <option value="communication">💬 Communication</option>
-              <option value="others">🔧 Others</option>
+              <option value="productivity">Productivity</option>
+              <option value="creativity">Creativity</option>
+              <option value="communication">Communication</option>
+              <option value="others">Others</option>
             </select>
           ) : (
             <input
@@ -137,7 +137,7 @@ const Reminders = () => {
       return (
         <div className="space-y-3">
           <label className="block text-sm font-semibold text-emerald-700 dark:text-emerald-300">
-            🚫 Domain to block
+            Domain to block
           </label>
           <input
             type="text"
@@ -218,7 +218,7 @@ const Reminders = () => {
     return (
       <div className="space-y-3">
         <label className="block text-sm font-semibold text-emerald-700 dark:text-emerald-300">
-          ⏰ Time to trigger {form.type === "block" ? "block" : "alert"}
+          Time to trigger {form.type === "block" ? "block" : "alert"}
         </label>
         <div className="grid grid-cols-3 gap-3">
           <div>
@@ -313,9 +313,9 @@ const Reminders = () => {
                     onChange={handleChange}
                     className="w-full p-3 bg-white text-gray-900 dark:bg-slate-800 dark:text-white rounded-xl border-2 border-emerald-200 dark:border-emerald-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 dark:focus:ring-emerald-800 transition-all duration-200 shadow-sm"
                   >
-                    <option value="alert">🔔 Alert</option>
-                    <option value="block">🚫 Block</option>
-                    <option value="custom">⚡ Custom</option>
+                    <option value="alert">Alert</option>
+                    <option value="block">Block</option>
+                    <option value="custom">Custom</option>
                   </select>
                 </div>
 
@@ -323,7 +323,7 @@ const Reminders = () => {
                 {form.type === "custom" && (
                   <div className="space-y-3">
                     <label className="block text-sm font-semibold text-emerald-700 dark:text-emerald-300">
-                      🏷️ Reminder Name
+                      Reminder Name
                     </label>
                     <input
                       type="text"
@@ -339,7 +339,7 @@ const Reminders = () => {
                 {/* Reminder Message */}
                 <div className="space-y-3">
                   <label className="block text-sm font-semibold text-emerald-700 dark:text-emerald-300">
-                    💬 Reminder Message
+                    Reminder Message
                   </label>
                   <textarea
                     name="message"
@@ -360,7 +360,7 @@ const Reminders = () => {
                 {/* Notification Type */}
                 <div className="space-y-3">
                   <label className="block text-sm font-semibold text-emerald-700 dark:text-emerald-300">
-                    🔊 Notification Type
+                    Notification Type
                   </label>
                   <div className="grid grid-cols-2 gap-4">
                     <label className="flex items-center p-3 bg-white dark:bg-slate-800 rounded-xl border-2 border-emerald-200 dark:border-emerald-700 cursor-pointer hover:bg-emerald-50 dark:hover:bg-slate-700 transition-colors">
@@ -372,7 +372,7 @@ const Reminders = () => {
                         className="w-4 h-4 text-emerald-600 bg-gray-100 border-gray-300 rounded focus:ring-emerald-500 dark:focus:ring-emerald-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                       />
                       <span className="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300">
-                        🌐 Browser
+                        Browser
                       </span>
                     </label>
                     <label className="flex items-center p-3 bg-white dark:bg-slate-800 rounded-xl border-2 border-emerald-200 dark:border-emerald-700 cursor-pointer hover:bg-emerald-50 dark:hover:bg-slate-700 transition-colors">
@@ -384,7 +384,7 @@ const Reminders = () => {
                         className="w-4 h-4 text-emerald-600 bg-gray-100 border-gray-300 rounded focus:ring-emerald-500 dark:focus:ring-emerald-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                       />
                       <span className="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300">
-                        🔔 Sound
+                        Sound
                       </span>
                     </label>
                   </div>
@@ -448,16 +448,16 @@ const Reminders = () => {
                           </p>
                           <div className="flex flex-wrap gap-2 text-xs text-gray-500 dark:text-gray-400">
                             <span className="bg-gray-100 dark:bg-gray-600 px-2 py-1 rounded-full">
-                              ⏰ {reminder.hours}h {reminder.minutes}m {reminder.seconds}s
+                              {reminder.hours}h {reminder.minutes}m {reminder.seconds}s
                             </span>
                             {reminder.repeatOption === "custom" && (
                               <span className="bg-gray-100 dark:bg-gray-600 px-2 py-1 rounded-full">
-                                🔄 {reminder.customRepeatHours}h {reminder.customRepeatMinutes}m {reminder.customRepeatSeconds}s
+                                {reminder.customRepeatHours}h {reminder.customRepeatMinutes}m {reminder.customRepeatSeconds}s
                               </span>
                             )}
                             {reminder.repeatOption !== "never" && reminder.repeatOption !== "custom" && (
                               <span className="bg-gray-100 dark:bg-gray-600 px-2 py-1 rounded-full">
-                                🔄 {reminder.repeatOption}
+                                {reminder.repeatOption}
                               </span>
                             )}
                           </div>
