@@ -1,48 +1,38 @@
 import express from "express";
-import DomainActivity from "../models/domainActivity.model.js";
+import Activity from "../models/activity.model.js";
+import categorizeDomain from "../utils/category.util.js";
+import { verifyToken } from "../middleware/auth.js";
 
 const router = express.Router();
 
-/**
- * POST /api/domain
- * Logs a domain activity entry
- */
-router.post("/", async (req, res) => {
-    try {
-        const { domain, startTime, endTime, user } = req.body;
+// Domain tracker
+router.post("/track", verifyToken, async (req, res) => {
+  const { url, action = "visit", tabId = 0, duration } = req.body;
 
-        if (!domain || !startTime || !endTime) {
-            return res.status(400).json({ message: "All fields are required" });
-        }
+  if (!url || duration == null) {
+    return res.status(400).json({ message: "url and duration are required" });
+  }
 
-        const entry = new DomainActivity({
-            domain,
-            startTime,
-            endTime,
-            user,
-        });
+  const domain = new URL(url).hostname;
+  const category = categorizeDomain(domain);
 
-        await entry.save();
-        res.status(201).json({
-            message: "Domain activity saved successfully",
-            data: entry,
-        });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
+  try {
+    await new Activity({
+      userId: req.user.id,
+      url,
+      domain,
+      action,
+      tabId,
+      timestamp: new Date(),
+      duration,
+      isActive: action !== "end"
+    }).save();
 
-/**
- * GET /api/domain
- * Fetch all domain activity logs (sorted by start time descending)
- */
-router.get("/", async (req, res) => {
-    try {
-        const logs = await DomainActivity.find().sort({ startTime: -1 });
-        res.status(200).json(logs);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+    res.status(201).json({ message: "Activity recorded", domain, category });
+  } catch (err) {
+    console.error("Error recording activity:", err);
+    res.status(500).json({ message: "Failed to record activity" });
+  }
 });
 
 export default router;
