@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import BarChart from "../components/charts/BarChart";
 import AppList from "../components/charts/AppList";
-import { trackTimeOnDomain } from "../utils/tracker"; // ✅ Adjust path if needed
+import { trackTimeOnDomain } from "../utils/tracker"; // ✅ Adjust path if needed 
 
 const StatCard = ({ title, value, color }) =>
   <div className={`p-4 rounded-xl shadow-md text-white ${color}`}>
@@ -88,11 +88,7 @@ const Dashboard = () => {
         {/* Stats */}
         <StatCard title="Time At Work" value="2 h 43 min" color="bg-blue-500" />
         <StatCard title="Creativity" value="2 h 32 min" color="bg-purple-500" />
-        <StatCard
-          title="Communication"
-          value="1 h 21 min"
-          color="bg-cyan-400"
-        />
+        <StatCard title="Communication" value="1 h 21 min" color="bg-cyan-400" />
         <StatCard title="Productivity" value="1 h 21 min" color="bg-pink-400" />
         <StatCard title="Others" value="41 min" color="bg-green-400" />
 
@@ -102,6 +98,15 @@ const Dashboard = () => {
           <div className="h-48 overflow-y-auto">
             <AppList />
           </div>
+        </div>
+
+        {/* Reminders Card */}
+        <div className="col-span-1 bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 hover:shadow-lg transition-all cursor-pointer"
+             onClick={() => window.location.href = "/reminders"}>
+          <h2 className="text-md font-semibold mb-2">⏰ Reminders</h2>
+          <p className="text-sm text-gray-600 dark:text-gray-300">
+            Set break alerts, usage limits, and custom reminders.
+          </p>
         </div>
       </div>
 

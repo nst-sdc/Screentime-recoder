@@ -24,6 +24,7 @@ import authRouter from "./routes/auth.route.js";
 import trackingRouter from "./routes/tracking.route.js";
 import activityRouter from "./routes/activity.route.js";
 import domainRouter from "./routes/domain.route.js"; // For domain time tracking
+import reminderRouter from "./routes/reminder.route.js"; // ✅ Reminder Feature
 
 // App setup
 const app = express();
@@ -65,7 +66,8 @@ app.use("/api/users", userRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/tracking", trackingRouter);
 app.use("/api/activity", activityRouter); // Activity logging
-app.use("/api/domain", domainRouter); // Time tracking
+app.use("/api/domain", domainRouter);     // Time tracking
+app.use("/api/reminders", reminderRouter); // ✅ Reminder routes
 
 // Health check route
 app.get("/api/health", (req, res) => {
@@ -74,5 +76,5 @@ app.get("/api/health", (req, res) => {
 
 // Start server
 app.listen(port, () => {
-  console.log(`Server listening on port ${port}`);
+  console.log(`🚀 Server listening on port ${port}`);
 });
