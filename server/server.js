@@ -1,5 +1,6 @@
+// Load environment variables from root
 import dotenv from "dotenv";
-dotenv.config({ path: "./.env" });
+dotenv.config({ path: "../.env" });
 
 // Core imports
 import express from "express";
@@ -28,31 +29,31 @@ connectDB();
 app.use(
   cors({
     origin: process.env.CLIENT_URL || "http://localhost:5173",
-    credentials: true,
+    credentials: true
   })
 );
 
-// Parse JSON bodies
+// Parse JSON
 app.use(express.json());
 
 // Session management
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "secret",
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {
       secure: process.env.NODE_ENV === "production",
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
-    },
+      maxAge: 24 * 60 * 60 * 1000 // 1 day
+    }
   })
 );
 
-// Initialize Passport for authentication
+// Initialize Passport
 app.use(passport.initialize());
 app.use(passport.session());
 
-// API Routes
+// Routes
 app.use("/api/users", userRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/tracking", trackingRouter);
@@ -64,7 +65,7 @@ app.get("/api/health", (req, res) => {
   res.status(200).json({ message: "Server is running!" });
 });
 
-// Start the server on 0.0.0.0 to allow external access (for Chrome extensions, etc.)
-app.listen(port, "0.0.0.0", () => {
-  console.log(`🚀 Server listening on http://0.0.0.0:${port}`);
+// Start server
+app.listen(port, () => {
+  console.log(`Server listening on port ${port}`);
 });
