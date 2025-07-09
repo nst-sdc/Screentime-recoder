@@ -17,11 +17,11 @@ const activitySchema = new mongoose.Schema(
     },
     sessionId: {
       type: String,
-      required: true // Unique session identifier for tracking continuous activity
+      required: false
     },
     startTime: {
       type: Date,
-      required: true
+      required: false
     },
     endTime: {
       type: Date
@@ -39,7 +39,7 @@ const activitySchema = new mongoose.Schema(
     },
     action: {
       type: String,
-      enum: ["visit", "focus", "blur", "close", "idle"],
+      enum: ["start", "update", "end", "visit", "focus", "blur", "close", "idle"],
       default: "visit"
     },
     isActive: {
