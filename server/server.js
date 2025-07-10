@@ -1,4 +1,6 @@
 import dotenv from "dotenv";
+
+dotenv.config({ path: "./.env" });
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -18,8 +20,7 @@ import authRouter from "./routes/auth.route.js";
 import trackingRouter from "./routes/tracking.route.js";
 import activityRouter from "./routes/activity.route.js";
 import domainRouter from "./routes/domain.route.js";
-import reminderRouter from "./routes/reminder.route.js"; // ✅ Reminder Feature
-
+import reminderRouter from "./routes/reminder.route.js"; 
 // App setup
 const app = express();
 const port = process.env.PORT || 3000;
@@ -27,6 +28,26 @@ const port = process.env.PORT || 3000;
 // Connect to DB
 connectDB();
 
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    credentials: true,
+  })
+);
+app.use(express.json());
+
+// Session management
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "secret",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+    },
+  })
+);
 // CORS
 app.use(cors({
   origin: process.env.CLIENT_URL || "http://localhost:5173",
@@ -47,17 +68,16 @@ app.use(session({
   },
 }));
 
-// Passport
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Routes
+// API Routes
 app.use("/api/users", userRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/tracking", trackingRouter);
 app.use("/api/activity", activityRouter);
 app.use("/api/domain", domainRouter);
-app.use("/api/reminders", reminderRouter); // ✅ Reminder routes
+app.use("/api/reminders", reminderRouter); 
 
 // Health check
 app.get("/api/health", (req, res) => {
@@ -84,10 +104,10 @@ const io = new SocketIOServer(server, {
 });
 
 io.on("connection", (socket) => {
-  console.log("🔌 Client connected:", socket.id);
+  console.log(" Client connected:", socket.id);
 
   socket.on("disconnect", () => {
-    console.log("❌ Client disconnected:", socket.id);
+    console.log(" Client disconnected:", socket.id);
   });
 });
 
@@ -95,7 +115,7 @@ const subscriber = redisClient.duplicate();
 
 subscriber.subscribe("activityUpdates", (err, count) => {
   if (err) {
-    console.error("❌ Redis subscribe error:", err);
+    console.error(" Redis subscribe error:", err);
   } else {
     console.log(`✅ Subscribed to ${count} channel(s).`);
   }
@@ -107,12 +127,13 @@ subscriber.on("message", (channel, message) => {
       const data = JSON.parse(message);
       io.emit("activityUpdated", data);
     } catch (err) {
-      console.error("❌ Error parsing Redis message:", err);
+      console.error(" Error parsing Redis message:", err);
     }
   }
 });
-
-// Start Server
+// Start the server on 0.0.0.0 to allow external access (for Chrome extensions, etc.)
+app.listen(port, "0.0.0.0", () => {
+  console.log(`🚀 Server listening on http://0.0.0.0:${port}`);
 server.listen(port, () => {
   console.log(`🚀 Server running at http://localhost:${port}`);
 });
