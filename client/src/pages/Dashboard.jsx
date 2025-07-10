@@ -23,35 +23,41 @@ const Dashboard = () => {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-
     if (!token) {
       console.warn("No token found");
       return;
     }
 
-    axios
-      .get("http://localhost:3000/api/activity/summary", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      .then((res) => {
-        setSummary(res.data.data || []);
-        const total = res.data.data.reduce(
-          (sum, item) => sum + (item.totalDuration || 0),
-          0
-        );
-        setTotalDuration(total);
-      })
-      .catch((err) => {
-        console.error("Error fetching activity summary:", err);
-      });
+    const fetchSummary = () => {
+      axios
+        .get("http://localhost:3000/api/activity/summary", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .then((res) => {
+          setSummary(res.data.data || []);
+          const total = res.data.data.reduce(
+            (sum, item) => sum + (item.totalDuration || 0),
+            0
+          );
+          setTotalDuration(total);
+        })
+        .catch((err) => {
+          console.error("Error fetching activity summary:", err);
+        });
+    };
+
+    fetchSummary(); // Initial load
+    const intervalId = setInterval(fetchSummary, 30000); // Every 30 seconds
+
+    return () => clearInterval(intervalId); // Cleanup on unmount
   }, []);
 
   const chartData = summary.map((item) => ({
     category: item._id || "Unknown",
     minutes: Math.round((item.totalDuration || 0) / 60000),
-    color: "#4caf50", // You can customize colors per category
+    color: "#4caf50", // Customize if needed
   }));
 
   return (
@@ -72,7 +78,9 @@ const Dashboard = () => {
               <BarChart data={chartData} />
               <div className="text-sm mt-4 text-gray-600 dark:text-gray-400">
                 {chartData.map((d) => (
-                  <div key={d.category}>🟩 {d.category}: {d.minutes} min</div>
+                  <div key={d.category}>
+                    🟩 {d.category}: {d.minutes} min
+                  </div>
                 ))}
               </div>
             </>
@@ -82,9 +90,21 @@ const Dashboard = () => {
         </div>
 
         {/* Stat Cards */}
-        <StatCard title="Time At Work" value={formatDuration(totalDuration)} color="bg-blue-500" />
-        <StatCard title="Productivity" value="Coming soon" color="bg-green-500" />
-        <StatCard title="Communication" value="Coming soon" color="bg-cyan-500" />
+        <StatCard
+          title="Time At Work"
+          value={formatDuration(totalDuration)}
+          color="bg-blue-500"
+        />
+        <StatCard
+          title="Productivity"
+          value="Coming soon"
+          color="bg-green-500"
+        />
+        <StatCard
+          title="Communication"
+          value="Coming soon"
+          color="bg-cyan-500"
+        />
         <StatCard title="Others" value="Coming soon" color="bg-purple-500" />
 
         {/* App List with summary data */}
