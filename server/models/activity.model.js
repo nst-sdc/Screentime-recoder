@@ -29,6 +29,7 @@ const activitySchema = new mongoose.Schema(
     startTime: {
       type: Date,
       default: Date.now
+    },
     sessionId: {
       type: String,
       required: false
@@ -47,7 +48,6 @@ const activitySchema = new mongoose.Schema(
     action: {
       type: String,
       enum: ["visit", "start", "update", "end", "close"],
-      enum: ["start", "update", "end", "visit", "focus", "blur", "close", "idle"],
       default: "visit"
     },
     isActive: {

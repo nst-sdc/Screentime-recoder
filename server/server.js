@@ -134,6 +134,7 @@ subscriber.on("message", (channel, message) => {
 // Start the server on 0.0.0.0 to allow external access (for Chrome extensions, etc.)
 app.listen(port, "0.0.0.0", () => {
   console.log(`🚀 Server listening on http://0.0.0.0:${port}`);
-server.listen(port, () => {
-  console.log(`🚀 Server running at http://localhost:${port}`);
+  server.listen(port, () => {
+    console.log(`🚀 Server running at http://localhost:${port}`);
+  });
 });

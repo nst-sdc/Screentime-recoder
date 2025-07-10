@@ -42,7 +42,7 @@ async function sendToBackend(activity) {
       typeof activity.url !== "string" ||
       !activity.url.startsWith("http")
     ) {
-      console.warn("❌ Skipping invalid activity:", activity);
+      console.warn("Skipping invalid activity:", activity);
       return;
     }
 
@@ -60,14 +60,14 @@ async function sendToBackend(activity) {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.warn(`❌ Backend returned ${response.status}:`, errorData);
+      console.warn(`Backend returned ${response.status}:`, errorData);
       return;
     }
 
     const result = await response.json();
-    console.log("✅ Activity sent to backend:", result);
+    console.log("Activity sent to backend:", result);
   } catch (error) {
-    console.error("❌ Network error:", error);
+    console.error("Network error:", error);
   }
 }
 
@@ -114,7 +114,7 @@ async function startTabTracking(tabId, url, title) {
     updateAuthStatus(result);
   }
 
-  console.log(`🟢 Started tracking tab ${tabId}: ${domain}`);
+  console.log(`Started tracking tab ${tabId}: ${domain}`);
 }
 
 async function updateTabDuration(tabId, additionalTime) {
@@ -173,7 +173,7 @@ async function endTabTracking(tabId, reason = 'close') {
   });
 
   activeTabs.delete(tabId);
-  console.log(`🔴 Ended tracking tab ${tabId}: ${tabData.domain} (${Math.round(finalDuration / 1000)}s)`);
+  console.log(`Ended tracking tab ${tabId}: ${tabData.domain} (${Math.round(finalDuration / 1000)}s)`);
 }
 
 async function handleTabActivated(newTabId, url, title) {
@@ -245,7 +245,6 @@ async function checkForWebAppToken() {
           const { token: currentToken } = await chrome.storage.local.get(['token']);
 
           if (token !== currentToken) {
-            await chrome.storage.local.set({
             await chrome.storage.local.set({ 
               token: token,
               authStatus: 'active'
@@ -267,7 +266,7 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
     const tab = await chrome.tabs.get(activeInfo.tabId);
     await handleTabActivated(activeInfo.tabId, tab.url, tab.title);
   } catch (error) {
-    console.error("⚠️ Error on tab switch:", error);
+    console.error("Error on tab switch:", error);
   }
 });
 
@@ -306,7 +305,7 @@ chrome.windows.onFocusChanged.addListener(async (windowId) => {
       await handleTabActivated(activeTab.id, activeTab.url, activeTab.title);
     }
   } catch (error) {
-    console.error("⚠️ Error on window focus:", error);
+    console.error("Error on window focus:", error);
   }
 });
 
@@ -369,7 +368,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => {
-  const allowedOrigins = ['http://localhost:5173', 'http://localhost:3000'];
   const allowedOrigins = [
     'http://localhost:5173', 
     'http://localhost:3000', 
@@ -387,7 +385,7 @@ chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => 
       token: message.token,
       authStatus: 'active'
     }, () => {
-      console.log("🎉 Authentication success from web app");
+      console.log("Authentication success from web app");
       sendResponse({ success: true });
     });
     return true;

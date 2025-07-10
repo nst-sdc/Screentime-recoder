@@ -1,8 +1,7 @@
 import Activity from "../models/activity.model.js";
 import { extractDomain } from "../utils/extractDomain.js";
 import mongoose from "mongoose";
-import redis from "../utils/redisClient.js";
-// Log Activity Handler
+
 export const logActivity = async (req, res) => {
   console.log("Received request:", req.body);
   console.log("Authenticated user ID:", req.user?.id);
@@ -25,7 +24,9 @@ export const logActivity = async (req, res) => {
       console.error(" Unauthorized - no user in request");
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
-    let domain = null;
+
+    let domain;
+
     if (url) {
       domain = extractDomain(url);
     }
@@ -48,8 +49,6 @@ export const logActivity = async (req, res) => {
       return res.status(400).json({ success: false, message: "SessionId is required for update/end actions" });
     }
 
-    // Extract domain only if URL is provided
-    let domain = null;
     if (url) {
       domain = extractDomain(url);
       if (!domain) {
@@ -80,17 +79,9 @@ export const logActivity = async (req, res) => {
     }
 
     res.status(201).json({ success: true, message: "Activity logged successfully" });
-        
         console.log("📝 Creating legacy activity record");
         await createActivity(req.user.id, tabId, url, domain, title, duration);
-    }
-
-    console.log("✅ Activity logged successfully");
-    res.status(201).json({
-      success: true,
-      message: "Activity logged successfully"
-    });
-  } catch (error) {
+    } catch (error) {
     console.error("❌ Activity logging failed:", error);
     res.status(500).json({
       success: false,
@@ -100,7 +91,6 @@ export const logActivity = async (req, res) => {
   }
 };
 
-async function startActivitySession(userId, tabId, url, domain, title, sessionId) {
 async function startActivitySession(
   userId,
   tabId,
@@ -252,8 +242,8 @@ export const getActivitySummary = async (req, res) => {
       { $sort: { totalDuration: -1 } }
     ]);
     return res.json({ success: true, data });
-  } catch (err) {
-    console.error("getActivitySummary error:", err);
+  } finally {
+    console.error("getActivitySummary error:", error);
     return res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
