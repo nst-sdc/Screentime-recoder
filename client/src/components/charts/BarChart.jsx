@@ -1,47 +1,56 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
+import * as d3 from "d3";
 
 const BarChart = ({ data }) => {
-  if (!data || data.length === 0) return <p>No activity data</p>;
+  const svgRef = useRef();
 
-  const maxMinutes = Math.max(...data.map((d) => d.minutes), 1); // avoid divide by 0
+  useEffect(() => {
+    if (!data || data.length === 0) return;
 
-  const formatTime = (min) => {
-    const hrs = Math.floor(min / 60);
-    const mins = min % 60;
-    if (hrs === 0) return `${mins} min`;
-    return `${hrs}h ${mins}m`;
-  };
+    const svg = d3.select(svgRef.current);
+    svg.selectAll("*").remove();
 
-  return (
-    <div className="w-full h-64 flex items-end space-x-4 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900 px-2">
-      {data.map((item, index) => {
-        const heightPercent = (item.minutes / maxMinutes) * 100;
-        const height = Math.max(heightPercent, 5); // min height 5% for visibility
+    const width = 400;
+    const height = 200;
+    const margin = { top: 20, right: 20, bottom: 30, left: 40 };
 
-        return (
-          <div
-            key={index}
-            className="flex flex-col items-center w-20 shrink-0 text-center"
-          >
-            <div
-              className="w-full bg-green-500 rounded-t-md hover:bg-green-400 transition-all"
-              style={{ height: `${height}%`, minHeight: "10px" }}
-              title={`${item.category}: ${formatTime(item.minutes)}`}
-            ></div>
-            <div
-              className="text-xs mt-1 text-gray-700 dark:text-gray-300 truncate"
-              title={item.category}
-            >
-              {item.category.length > 10
-                ? item.category.slice(0, 10) + "..."
-                : item.category}
-            </div>
-            <div className="text-xs text-gray-500">{formatTime(item.minutes)}</div>
-          </div>
-        );
-      })}
-    </div>
-  );
+    const x = d3
+      .scaleBand()
+      .domain(data.map((d) => d.category))
+      .range([margin.left, width - margin.right])
+      .padding(0.4);
+
+    const y = d3
+      .scaleLinear()
+      .domain([0, d3.max(data, (d) => d.minutes)])
+      .nice()
+      .range([height - margin.bottom, margin.top]);
+
+    svg
+      .attr("width", width)
+      .attr("height", height)
+      .append("g")
+      .selectAll("rect")
+      .data(data)
+      .join("rect")
+      .attr("x", (d) => x(d.category))
+      .attr("y", (d) => y(d.minutes))
+      .attr("height", (d) => y(0) - y(d.minutes))
+      .attr("width", x.bandwidth())
+      .attr("fill", (d) => d.color);
+
+    svg
+      .append("g")
+      .attr("transform", `translate(0,${height - margin.bottom})`)
+      .call(d3.axisBottom(x));
+
+    svg
+      .append("g")
+      .attr("transform", `translate(${margin.left},0)`)
+      .call(d3.axisLeft(y));
+  }, [data]);
+
+  return <svg ref={svgRef}></svg>;
 };
 
 export default BarChart;
