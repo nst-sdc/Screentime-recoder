@@ -13,7 +13,7 @@ const AuthSuccess = () => {
           // Send token to extension
           try {
             chrome.runtime.sendMessage(
-              process.env.REACT_APP_EXTENSION_ID || "your-extension-id",
+              import.meta.env.VITE_APP_EXTENSION_ID || "your-extension-id",
               {
                 type: "AUTH_SUCCESS",
                 token: token
