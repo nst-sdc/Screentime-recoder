@@ -9,7 +9,7 @@ router.post("/log", verifyToken, logActivity);
 router.post("/", verifyToken, logActivity);
 router.get("/summary", verifyToken, getActivitySummary);
 
-// 🔴 Live activity endpoint
+// Live activity endpoint
 router.get("/active", verifyToken, getLiveActivity);
 
 router.post("/end-all", verifyToken, async (req, res) => {

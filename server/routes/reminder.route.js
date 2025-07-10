@@ -5,13 +5,13 @@ import {
   deleteReminder,
   updateReminder,
 } from "../controllers/reminder.controller.js";
-import authenticate from "../middleware/auth.middleware.js";
+import { verifyToken } from "../middleware/auth.js"; 
 
 const router = express.Router();
 
-router.post("/add", authenticate, addReminder);
-router.get("/user", authenticate, getUserReminders);
-router.delete("/:id", authenticate, deleteReminder);
-router.put("/:id", authenticate, updateReminder);
+router.post("/add", verifyToken, addReminder);
+router.get("/user", verifyToken, getUserReminders);
+router.delete("/:id", verifyToken, deleteReminder);
+router.put("/:id", verifyToken, updateReminder);
 
 export default router;
