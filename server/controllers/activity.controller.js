@@ -48,11 +48,10 @@ export const logActivity = async (req, res) => {
       }
     }
 
-    // Handle different types of activity logging
+    let activity;
     switch (action) {
       case "start":
         // Start a new activity session
-        console.log("🟢 Starting new session");
         await startActivitySession(
           req.user.id,
           tabId,
@@ -62,6 +61,7 @@ export const logActivity = async (req, res) => {
           sessionId
         );
         break;
+
       case "update":
         // Update existing session with duration
         console.log("🔄 Updating session:", sessionId);
@@ -72,6 +72,7 @@ export const logActivity = async (req, res) => {
         console.log("🔴 Ending session:", sessionId);
         await endActivitySession(sessionId, endTime, duration);
         break;
+
       default:
         
         console.log("📝 Creating legacy activity record");
