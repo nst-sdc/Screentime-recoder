@@ -9,6 +9,7 @@ import Registration from "./pages/Registration";
 import Dashboard from "./pages/Dashboard";
 import AuthSuccess from "./pages/AuthSuccess";
 import Footer from "./components/Footer";
+import Reminders from "./pages/Reminders"; // ✅ New Import
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         <Route path="/register" element={<Registration />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/auth/success" element={<AuthSuccess />} />
+        <Route path="/reminders" element={<Reminders />} /> {/* ✅ New Route */} 
       </Routes>
       <Footer />
     </AuthProvider>

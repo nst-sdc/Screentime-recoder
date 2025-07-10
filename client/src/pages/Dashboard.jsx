@@ -42,7 +42,10 @@ const Dashboard = () => {
 
       const activityData = res.data.data || [];
 
-      const total = activityData.reduce((sum, curr) => sum + (curr.duration || 0), 0);
+      const total = activityData.reduce(
+        (sum, curr) => sum + (curr.duration || 0),
+        0
+      );
 
       setApps(activityData);
       setTotalDuration(total);
@@ -74,7 +77,6 @@ const Dashboard = () => {
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {/* Bar Chart */}
         <div className="col-span-1 md:col-span-2 lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-md p-4">
           <h2 className="text-md font-semibold mb-2">Screen Time Overview</h2>
           <BarChart
@@ -91,24 +93,29 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Stats */}
         <StatCard
           title="Total Active Time"
           value={formatDuration(totalDuration)}
           color="bg-blue-500"
         />
-        <StatCard
-          title="Active Tabs"
-          value={totalTabs}
-          color="bg-purple-500"
-        />
+        <StatCard title="Active Tabs" value={totalTabs} color="bg-purple-500" />
       </div>
 
-      {/* App List */}
       <div className="mt-6 bg-white dark:bg-gray-800 rounded-xl shadow-md p-4">
         <h2 className="text-md font-semibold mb-2">Applications</h2>
         <div className="h-60 overflow-y-auto">
           <AppList apps={apps} />
+        </div>
+
+        {/* Reminders Card */}
+        <div
+          className="col-span-1 bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 hover:shadow-lg transition-all cursor-pointer mt-6"
+          onClick={() => window.location.href = "/reminders"}
+        >
+          <h2 className="text-md font-semibold mb-2">⏰ Reminders</h2>
+          <p className="text-sm text-gray-600 dark:text-gray-300">
+            Set break alerts, usage limits, and custom reminders.
+          </p>
         </div>
       </div>
 
