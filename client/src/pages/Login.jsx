@@ -43,7 +43,6 @@ const Login = () => {
     try {
       const { token, user } = await loginWithCredentials(formData.email, formData.password);
 
-      // ✅ Auth bridge: Store token & status in Chrome Extension storage
       if (chrome?.storage?.local) {
         chrome.storage.local.set({
           token,
@@ -57,9 +56,8 @@ const Login = () => {
       navigate("/dashboard");
     } catch (error) {
       setError(error.response?.data?.message || 'Login failed. Please check your credentials.');
-
-      // ❌ Also store error state in extension storage (optional)
       chrome?.storage?.local?.set({ authStatus: 'network_error' });
+      setError(error.message || 'Login failed. Please check your credentials.');
     } finally {
       setIsSubmitting(false);
     }

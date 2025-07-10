@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import AuthSuccess from "./pages/AuthSuccess";
 import Logout from "./pages/Logout";
 import Footer from "./components/Footer";
+import Reminders from "./pages/Reminders";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/auth/success" element={<AuthSuccess />} />
         <Route path="/logout" element={<Logout />} />
+        <Route path="/reminders" element={<Reminders />} /> 
       </Routes>
       <Footer />
     </AuthProvider>

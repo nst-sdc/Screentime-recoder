@@ -11,8 +11,7 @@ import {
   SiMessenger,
 } from "react-icons/si";
 
-// Optional icon mapping
-const iconMap = {
+const iconMapA = {
   "chatgpt.com": <FaMicrosoft />,
   "github.com": <FaChrome />,
   "localhost": <FaSafari />,
@@ -27,7 +26,7 @@ const formatDuration = (ms) => {
   return `${hours} h ${minutes} min`;
 };
 
-const AppList = ({ data = [] }) => {
+export const AppListA = ({ data = [] }) => {
   if (data.length === 0) {
     return (
       <p className="text-gray-500 dark:text-gray-400">
@@ -41,7 +40,7 @@ const AppList = ({ data = [] }) => {
       {data.map((item, idx) => {
         const name = item._id || "Unknown";
         const duration = formatDuration(item.totalDuration || 0);
-        const icon = iconMap[name] || <FaChrome />;
+        const icon = iconMapA[name] || <FaChrome />;
 
         return (
           <li
@@ -59,6 +58,37 @@ const AppList = ({ data = [] }) => {
     </ul>
   );
 };
+
+const iconMapB = {
+  Chrome: <FaChrome />,
+  Edge: <FaEdge />,
+  Safari: <FaSafari />,
+  Chat: <SiMessenger />,
+  Window: <FaMicrosoft />,
+  Figma: <FaFigma />,
+  Office: <SiAdobeillustrator />,
+};
+
+const AppList = ({ apps }) => (
+  <ul className="space-y-2 text-sm text-gray-200">
+    {apps && apps.length > 0 ? (
+      apps.map((app, idx) => (
+        <li
+          key={idx}
+          className="flex justify-between items-center border-b pb-1 border-gray-600"
+        >
+          <div className="flex items-center space-x-2">
+            <span>{iconMapB[app.name] || "🌀"}</span>
+            <span className="truncate max-w-xs">{app.url || app.name}</span>
+          </div>
+          <span>{Math.floor((app.duration || 0) / 60)} min</span>
+        </li>
+      ))
+    ) : (
+      <li>No application data available</li>
+    )}
+  </ul>
+);
 
 export default AppList;
 

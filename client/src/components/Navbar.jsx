@@ -54,14 +54,6 @@ const Navbar = () => {
                 Register
               </Link>
             </li>
-            <li>
-              <a
-                href="http://localhost:3000/api/auth/google"
-                className="relative px-3 py-1.5 rounded-full text-[#e1f2f1] text-base font-semibold tracking-wide hover:bg-white hover:bg-opacity-10 hover:text-white transition-colors duration-200"
-              >
-                Sign in with Google
-              </a>
-            </li>
           </>
         )}
 

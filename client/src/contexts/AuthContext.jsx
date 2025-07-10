@@ -83,16 +83,74 @@ export const AuthProvider = ({ children }) => {
     window.location.href = `${API_BASE_URL}/auth/google`;
   };
 
+  // Email + Password registration
+  const registerUser = async (userData) => {
+    try {
+      const res = await axios.post('/auth/register', userData);
+      
+      if (res.data.success) {
+        const jwt = res.data.token;
+        const userData = res.data.data;
+
+        localStorage.setItem('token', jwt);
+        setToken(jwt);
+        axios.defaults.headers.common['Authorization'] = `Bearer ${jwt}`;
+
+        setUser(userData);
+        setIsAuthenticated(true);
+        
+        // Notify extension of successful registration
+        try {
+          if (window.chrome && window.chrome.runtime && import.meta.env.VITE_APP_EXTENSION_ID) {
+            chrome.runtime.sendMessage(
+              import.meta.env.VITE_APP_EXTENSION_ID,
+              {
+                type: "AUTH_SUCCESS",
+                token: jwt
+              },
+              (response) => {
+                if (chrome.runtime.lastError) {
+                  console.log("Extension registration failed:", chrome.runtime.lastError.message);
+                } else {
+                  console.log("Registration token sent to extension:", response);
+                }
+              }
+            );
+          }
+        } catch (error) {
+          console.log("Extension not available for registration:", error);
+        }
+        
+        return res.data;
+      } else {
+        throw new Error(res.data.message || 'Registration failed');
+      }
+    } catch (err) {
+      console.error('Registration failed:', err);
+      
+      // Handle different error types
+      if (err.response?.data?.message) {
+        throw new Error(err.response.data.message);
+      } else if (err.message) {
+        throw new Error(err.message);
+      } else {
+        throw new Error('Registration failed. Please try again.');
+      }
+    }
+  };
+
   const loginWithCredentials = async (email, password) => {
     try {
       const res = await axios.post('/auth/login', { email, password });
-      const jwt = res.data.token;
+      
+      if (res.data.success) {
+        const jwt = res.data.token;
+        const userData = res.data.data;
 
-      localStorage.setItem('token', jwt);
-      setToken(jwt);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${jwt}`;
+        localStorage.setItem('token', jwt);
+        setToken(jwt);
+        axios.defaults.headers.common['Authorization'] = `Bearer ${jwt}`;
 
-      // ✅ Send token to extension
       try {
         if (window.chrome && window.chrome.runtime) {
           chrome.runtime.sendMessage(
@@ -117,9 +175,47 @@ export const AuthProvider = ({ children }) => {
       const userRes = await axios.get('/auth/verify');
       setUser(userRes.data.data);
       setIsAuthenticated(true);
+      
+        setUser(userData);
+        setIsAuthenticated(true);
+        
+        // Notify extension of successful login
+        try {
+          if (window.chrome && window.chrome.runtime && import.meta.env.VITE_APP_EXTENSION_ID) {
+            chrome.runtime.sendMessage(
+              import.meta.env.VITE_APP_EXTENSION_ID,
+              {
+                type: "AUTH_SUCCESS",
+                token: jwt
+              },
+              (response) => {
+                if (chrome.runtime.lastError) {
+                  console.log("Extension login failed:", chrome.runtime.lastError.message);
+                } else {
+                  console.log("Login token sent to extension:", response);
+                }
+              }
+            );
+          }
+        } catch (error) {
+          console.log("Extension not available for login:", error);
+        }
+        
+        return res.data;
+      } else {
+        throw new Error(res.data.message || 'Login failed');
+      }
     } catch (err) {
       console.error('Login failed:', err);
-      throw err;
+      
+      // Handle different error types
+      if (err.response?.data?.message) {
+        throw new Error(err.response.data.message);
+      } else if (err.message) {
+        throw new Error(err.message);
+      } else {
+        throw new Error('Login failed. Please try again.');
+      }
     }
   };
 
@@ -165,6 +261,7 @@ export const AuthProvider = ({ children }) => {
     token,
     login,
     loginWithCredentials,
+    registerUser,
     logout,
     updateProfile,
     deleteAccount,
