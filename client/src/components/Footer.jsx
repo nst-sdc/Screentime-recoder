@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import footerGraphic from '../assets/footer-graphic.jpg';
+import footerGraphic from '../assets/footer-graphic.svg';
 
 const Footer = () => {
   return (

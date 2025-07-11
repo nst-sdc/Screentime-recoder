@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
+import UndrawSVG from "../assets/undraw.svg";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 
@@ -185,10 +186,12 @@ const Login = () => {
 
         {/* Right Side: Image Placeholder */}
         <div className="flex flex-col items-center justify-center bg-green-100 dark:bg-[#1f2c33] p-12 space-y-6">
-          <div className="w-80 h-80 bg-gradient-to-br from-green-200 to-green-300 dark:from-green-700 dark:to-green-800 rounded-lg shadow-md border border-green-200 flex items-center justify-center">
-            <div className="text-center text-green-800 dark:text-green-200">
-              <p className="text-lg font-semibold">Secure Login</p> 
-            </div>
+          <div className="w-80 h-80 flex items-center justify-center">
+            <img
+              src={UndrawSVG}
+              alt="Undraw Illustration"
+              className="w-full max-w-[220px] object-contain rounded-lg shadow-lg"
+            />
           </div>
           <h2 className="text-2xl font-semibold text-green-800 dark:text-whatsDark-text text-center">
             Effortlessly manage your time and productivity
