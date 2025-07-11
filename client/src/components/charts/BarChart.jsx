@@ -26,6 +26,17 @@ const BarChart = ({ data }) => {
       .nice()
       .range([height - margin.bottom, margin.top]);
 
+    const tooltip = d3
+      .select(svgRef.current.parentNode)
+      .append("div")
+      .style("position", "absolute")
+      .style("background", "#f9f9f9")
+      .style("padding", "6px 12px")
+      .style("border", "1px solid #ccc")
+      .style("border-radius", "4px")
+      .style("pointer-events", "none")
+      .style("opacity", 0);
+
     svg
       .attr("width", width)
       .attr("height", height)
@@ -37,7 +48,17 @@ const BarChart = ({ data }) => {
       .attr("y", (d) => y(d.minutes))
       .attr("height", (d) => y(0) - y(d.minutes))
       .attr("width", x.bandwidth())
-      .attr("fill", (d) => d.color);
+      .attr("fill", (d) => d.color)
+      .on("mouseover", (event, d) => {
+        tooltip
+          .style("opacity", 1)
+          .html(`${d.category}: ${d.minutes} mins`)
+          .style("left", event.pageX + 10 + "px")
+          .style("top", event.pageY - 28 + "px");
+      })
+      .on("mouseout", () => {
+        tooltip.style("opacity", 0);
+      });
 
     svg
       .append("g")
