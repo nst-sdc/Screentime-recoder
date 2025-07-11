@@ -72,7 +72,7 @@ app.use((req, res) => {
 // Socket + Redis Setup
 import http from "http";
 import { Server as SocketIOServer } from "socket.io";
-import redisClient from "./utils/redisClient.js";
+// import redisClient from "./utils/redisClient.js";
 
 const server = http.createServer(app);
 const io = new SocketIOServer(server, {
@@ -91,26 +91,26 @@ io.on("connection", (socket) => {
   });
 });
 
-const subscriber = redisClient.duplicate();
+// const subscriber = redisClient.duplicate();
 
-subscriber.subscribe("activityUpdates", (err, count) => {
-  if (err) {
-    console.error("❌ Redis subscribe error:", err);
-  } else {
-    console.log(`✅ Subscribed to ${count} channel(s).`);
-  }
-});
+// subscriber.subscribe("activityUpdates", (err, count) => {
+//   if (err) {
+//     console.error("❌ Redis subscribe error:", err);
+//   } else {
+//     console.log(`✅ Subscribed to ${count} channel(s).`);
+//   }
+// });
 
-subscriber.on("message", (channel, message) => {
-  if (channel === "activityUpdates") {
-    try {
-      const data = JSON.parse(message);
-      io.emit("activityUpdated", data);
-    } catch (err) {
-      console.error("❌ Error parsing Redis message:", err);
-    }
-  }
-});
+// subscriber.on("message", (channel, message) => {
+//   if (channel === "activityUpdates") {
+//     try {
+//       const data = JSON.parse(message);
+//       io.emit("activityUpdated", data);
+//     } catch (err) {
+//       console.error("❌ Error parsing Redis message:", err);
+//     }
+//   }
+// });
 
 // Start Server
 server.listen(port, () => {

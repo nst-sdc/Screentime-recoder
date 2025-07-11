@@ -191,16 +191,13 @@ async function updateActiveDurations() {
   const now = Date.now();
   
   for (const [tabId, tabData] of activeTabs.entries()) {
-<<<<<<< HEAD
     if (tabId === activeTabId && isWindowFocused) {
       const timeDiff = now - tabData.lastUpdate;
       await updateTabDuration(tabId, timeDiff);
     }
-=======
     // Update duration for all tabs, not just active focused tab
     const timeDiff = now - tabData.lastUpdate;
     await updateTabDuration(tabId, timeDiff);
->>>>>>> 31f7d23 (Fix syntax error in fetchActiveSessions function for real-time sync)
   }
 }
 

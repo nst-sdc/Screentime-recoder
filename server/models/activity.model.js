@@ -15,6 +15,10 @@ const activitySchema = new mongoose.Schema(
       type: Number,
       required: true
     },
+    tabName: {
+      type: String,
+      required: false
+    },
     sessionId: {
       type: String,
       required: false
@@ -27,7 +31,7 @@ const activitySchema = new mongoose.Schema(
       type: Date
     },
     duration: {
-      type: Number, // Total active time in milliseconds
+      type: Number,
       default: 0
     },
     domain: {
@@ -35,7 +39,7 @@ const activitySchema = new mongoose.Schema(
       required: true
     },
     title: {
-      type: String // Page title
+      type: String
     },
     action: {
       type: String,
@@ -44,10 +48,10 @@ const activitySchema = new mongoose.Schema(
     },
     isActive: {
       type: Boolean,
-      default: true // Whether this session is currently active
+      default: true
     },
     idleTime: {
-      type: Number, // Time spent idle in milliseconds
+      type: Number,
       default: 0
     }
   },
@@ -56,7 +60,6 @@ const activitySchema = new mongoose.Schema(
   }
 );
 
-// Index for efficient queries
 activitySchema.index({ userId: 1, domain: 1, startTime: -1 });
 activitySchema.index({ sessionId: 1 });
 activitySchema.index({ userId: 1, isActive: 1 });

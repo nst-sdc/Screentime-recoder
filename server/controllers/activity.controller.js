@@ -1,6 +1,5 @@
 import Activity from "../models/activity.model.js";
 import { extractDomain } from "../utils/extractDomain.js";
-import redis from "../utils/redisClient.js";
 
 export const logActivity = async (req, res) => {
   try {
@@ -14,7 +13,8 @@ export const logActivity = async (req, res) => {
       action,
       title,
       duration,
-      endTime
+      endTime,
+      tabName 
     } = req.body;
 
     if (!req.user || !req.user.id) {
@@ -22,7 +22,6 @@ export const logActivity = async (req, res) => {
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
-    
     if (!action) {
       console.error("❌ Missing action field");
       return res.status(400).json({ success: false, message: "Action is required" });
@@ -38,7 +37,6 @@ export const logActivity = async (req, res) => {
       return res.status(400).json({ success: false, message: "SessionId is required for update/end actions" });
     }
 
-    // Extract domain only if URL is provided
     let domain = null;
     if (url) {
       domain = extractDomain(url);
@@ -48,10 +46,8 @@ export const logActivity = async (req, res) => {
       }
     }
 
-    // Handle different types of activity logging
     switch (action) {
       case "start":
-        // Start a new activity session
         console.log("🟢 Starting new session");
         await startActivitySession(
           req.user.id,
@@ -59,23 +55,29 @@ export const logActivity = async (req, res) => {
           url,
           domain,
           title,
-          sessionId
+          sessionId,
+          tabName // ✅ pass to start
         );
         break;
       case "update":
-        // Update existing session with duration
         console.log("🔄 Updating session:", sessionId);
         await updateActivitySession(sessionId, duration);
         break;
       case "end":
-        
         console.log("🔴 Ending session:", sessionId);
         await endActivitySession(sessionId, endTime, duration);
         break;
       default:
-        
         console.log("📝 Creating legacy activity record");
-        await createActivity(req.user.id, tabId, url, domain, title, duration);
+        await createActivity(
+          req.user.id,
+          tabId,
+          url,
+          domain,
+          title,
+          duration,
+          tabName // ✅ pass to legacy
+        );
     }
 
     console.log("✅ Activity logged successfully");
@@ -93,14 +95,14 @@ export const logActivity = async (req, res) => {
   }
 };
 
-// Start a new activity session
 async function startActivitySession(
   userId,
   tabId,
   url,
   domain,
   title,
-  sessionId
+  sessionId,
+  tabName // ✅ added
 ) {
   if (!url || !domain) {
     throw new Error("URL and domain are required for starting a session");
@@ -114,6 +116,7 @@ async function startActivitySession(
     startTime: new Date(),
     domain,
     title: title || '',
+    tabName: tabName || '', // ✅ store tab name
     action: "visit",
     isActive: true
   });
@@ -123,7 +126,6 @@ async function startActivitySession(
   return newActivity;
 }
 
-// Update activity session with duration
 async function updateActivitySession(sessionId, duration) {
   if (!sessionId) {
     throw new Error("SessionId is required for updating a session");
@@ -142,11 +144,10 @@ async function updateActivitySession(sessionId, duration) {
   } else {
     console.log("🔄 Updated activity session:", sessionId, "duration:", duration);
   }
-  
+
   return result;
 }
 
-// End activity session
 async function endActivitySession(sessionId, endTime, finalDuration) {
   if (!sessionId) {
     throw new Error("SessionId is required for ending a session");
@@ -167,12 +168,11 @@ async function endActivitySession(sessionId, endTime, finalDuration) {
   } else {
     console.log("🔴 Ended activity session:", sessionId, "duration:", finalDuration);
   }
-  
+
   return result;
 }
 
-// Create a complete activity record (legacy support)
-async function createActivity(userId, tabId, url, domain, title, duration) {
+async function createActivity(userId, tabId, url, domain, title, duration, tabName) {
   const sessionId = `${userId}_${tabId}_${Date.now()}`;
   const now = new Date();
 
@@ -186,6 +186,7 @@ async function createActivity(userId, tabId, url, domain, title, duration) {
     duration: duration || 0,
     domain,
     title,
+    tabName: tabName || '', // ✅ legacy handler
     action: "visit",
     isActive: false
   });
@@ -194,13 +195,19 @@ async function createActivity(userId, tabId, url, domain, title, duration) {
   return newActivity;
 }
 
-// Get user's activity summary
 export const getActivitySummary = async (req, res) => {
   try {
     const userId = req.user.id;
     const data = await Activity.aggregate([
       { $match: { userId } },
-      { $group: { _id: "$domain", totalDuration: { $sum: "$duration" }, sessionCount: { $sum: 1 }, lastVisit: { $max: "$startTime" } } },
+      {
+        $group: {
+          _id: "$domain",
+          totalDuration: { $sum: "$duration" },
+          sessionCount: { $sum: 1 },
+          lastVisit: { $max: "$startTime" }
+        }
+      },
       { $sort: { totalDuration: -1 } }
     ]);
     return res.json({ success: true, data });
@@ -212,15 +219,21 @@ export const getActivitySummary = async (req, res) => {
 
 export const getLiveActivity = async (req, res) => {
   try {
-    const activities = await Activity.find({ userId: req.user.id, isActive: true }).sort({ startTime: -1 });
+    const activities = await Activity.find({
+      userId: req.user.id,
+      isActive: true
+    }).sort({ startTime: -1 });
+
     const data = activities.map(a => ({
       sessionId: a.sessionId,
       domain: a.domain,
       url: a.url,
       title: a.title,
+      tabName: a.tabName || "", // ✅ include in response
       duration: a.duration,
       startTime: a.startTime
     }));
+
     return res.json({ success: true, data });
   } catch (err) {
     console.error("getLiveActivity error:", err);
