@@ -19,7 +19,6 @@ export const AuthProvider = ({ children }) => {
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
-  // Always set baseURL and auth headers correctly 
   useEffect(() => {
     axios.defaults.baseURL = API_BASE_URL;
     if (token) {
@@ -29,7 +28,6 @@ export const AuthProvider = ({ children }) => {
     }
   }, [token]);
 
-  // Verify token on first load
   useEffect(() => {
     const checkAuth = async () => {
       if (token) {
@@ -48,7 +46,6 @@ export const AuthProvider = ({ children }) => {
     checkAuth();
   }, [token]);
 
-  // Handle Google login redirect with token in URL
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const urlToken = urlParams.get('token');
@@ -56,11 +53,9 @@ export const AuthProvider = ({ children }) => {
     if (urlToken) {
       setToken(urlToken);
       localStorage.setItem('token', urlToken);
-      
-      // Send token to extension if available
+
       try {
         if (window.chrome && window.chrome.runtime) {
-          // Try to send to extension
           chrome.runtime.sendMessage(
             import.meta.env.VITE_APP_EXTENSION_ID,
             {
@@ -79,12 +74,11 @@ export const AuthProvider = ({ children }) => {
       } catch (error) {
         console.log("Extension not available:", error);
       }
-      
+
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, []);
 
-  // Google login
   const login = () => {
     window.location.href = `${API_BASE_URL}/auth/google`;
   };
@@ -145,7 +139,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Email + Password login
   const loginWithCredentials = async (email, password) => {
     try {
       const res = await axios.post('/auth/login', { email, password });
@@ -158,6 +151,31 @@ export const AuthProvider = ({ children }) => {
         setToken(jwt);
         axios.defaults.headers.common['Authorization'] = `Bearer ${jwt}`;
 
+      try {
+        if (window.chrome && window.chrome.runtime) {
+          chrome.runtime.sendMessage(
+            import.meta.env.VITE_APP_EXTENSION_ID,
+            {
+              type: "SET_TOKEN",
+              token: jwt,
+            },
+            (response) => {
+              if (chrome.runtime.lastError) {
+                console.error("Extension communication failed:", chrome.runtime.lastError.message);
+              } else {
+                console.log("Token sent to extension:", response);
+              }
+            }
+          );
+        }
+      } catch (err) {
+        console.error("Failed to send token to extension:", err);
+      }
+
+      const userRes = await axios.get('/auth/verify');
+      setUser(userRes.data.data);
+      setIsAuthenticated(true);
+      
         setUser(userData);
         setIsAuthenticated(true);
         
@@ -201,7 +219,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Logout user
   const logout = async () => {
     try {
       await axios.post('/auth/logout');
@@ -216,7 +233,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Update profile
   const updateProfile = async (data) => {
     try {
       const res = await axios.put('/auth/profile', data);
@@ -228,7 +244,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Delete account
   const deleteAccount = async () => {
     try {
       await axios.delete('/auth/account');

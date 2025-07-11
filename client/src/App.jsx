@@ -8,8 +8,9 @@ import Login from "./pages/Login";
 import Registration from "./pages/Registration";
 import Dashboard from "./pages/Dashboard";
 import AuthSuccess from "./pages/AuthSuccess";
+import Logout from "./pages/Logout";
 import Footer from "./components/Footer";
-import Reminders from "./pages/Reminders"; // ✅ New Import
+import Reminders from "./pages/Reminders";
 
 function App() {
   return (
@@ -21,7 +22,8 @@ function App() {
         <Route path="/register" element={<Registration />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/auth/success" element={<AuthSuccess />} />
-        <Route path="/reminders" element={<Reminders />} /> {/* ✅ New Route */} 
+        <Route path="/logout" element={<Logout />} />
+        <Route path="/reminders" element={<Reminders />} /> 
       </Routes>
       <Footer />
     </AuthProvider>

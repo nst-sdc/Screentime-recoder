@@ -1,7 +1,7 @@
 console.log("📡 Enhanced Background script is running...");
 
 chrome.runtime.onInstalled.addListener(() => {
-  console.log("✅ Extension installed.");
+  console.log("Extension installed.");
   initializeTracking();
 });
 
@@ -14,9 +14,8 @@ let updateInterval = null;
 // Initialize tracking
 function initializeTracking() {
   updateInterval = setInterval(updateActiveDurations, 10000);
-  
   setInterval(checkForWebAppToken, 5000);
-  
+
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     if (tabs[0]) {
       handleTabActivated(tabs[0].id, tabs[0].url, tabs[0].title);
@@ -32,9 +31,19 @@ async function sendToBackend(activity) {
   try {
     const { token } = await chrome.storage.local.get(["token"]);
 
-    if (!token) {
-      console.warn("⛔ No token found. Skipping backend log.");
-      return { success: false, reason: "no_token" };
+    if (!token) return;
+
+    if (
+      !activity ||
+      typeof activity !== "object" ||
+      !activity.sessionId ||
+      !activity.action ||
+      !activity.url ||
+      typeof activity.url !== "string" ||
+      !activity.url.startsWith("http")
+    ) {
+      console.warn("Skipping invalid activity:", activity);
+      return;
     }
 
     // Use production backend URL - update this to match your actual Render URL
@@ -44,26 +53,21 @@ async function sendToBackend(activity) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify(activity)
+      body: JSON.stringify(activity),
     });
 
     if (!response.ok) {
-      if (response.status === 401) {
-        console.warn("🔐 Token expired or invalid. Clearing stored token.");
-        await chrome.storage.local.remove(["token"]);
-        return { success: false, reason: "auth_failed" };
-      }
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      const errorData = await response.json().catch(() => ({}));
+      console.warn(`Backend returned ${response.status}:`, errorData);
+      return;
     }
 
     const result = await response.json();
-    console.log("📡 Activity sent to backend:", result);
-    return { success: true, data: result };
+    console.log("Activity sent to backend:", result);
   } catch (error) {
-    console.error("❌ Error sending activity to backend:", error);
-    return { success: false, reason: "network_error", error: error.message };
+    console.error("Network error:", error);
   }
 }
 
@@ -105,12 +109,12 @@ async function startTabTracking(tabId, url, title) {
       title,
       duration: 0
     };
-    
+
     const result = await sendToBackend(activity);
     updateAuthStatus(result);
   }
 
-  console.log(`🟢 Started tracking tab ${tabId}: ${domain}`);
+  console.log(`Started tracking tab ${tabId}: ${domain}`);
 }
 
 async function updateTabDuration(tabId, additionalTime) {
@@ -122,14 +126,14 @@ async function updateTabDuration(tabId, additionalTime) {
 
   if (tabData.totalDuration > 0 && tabData.totalDuration % 60000 < 10000) {
     const { token } = await chrome.storage.local.get(["token"]);
-    
+
     if (token) {
       const activity = {
         sessionId: tabData.sessionId,
         action: 'update',
         duration: tabData.totalDuration
       };
-      
+
       const result = await sendToBackend(activity);
       updateAuthStatus(result);
     }
@@ -151,7 +155,7 @@ async function endTabTracking(tabId, reason = 'close') {
       endTime: new Date(endTime).toISOString(),
       duration: finalDuration
     };
-    
+
     const result = await sendToBackend(activity);
     updateAuthStatus(result);
   }
@@ -163,13 +167,13 @@ async function endTabTracking(tabId, reason = 'close') {
       finalDuration,
       reason
     };
-    
+
     const updatedLog = [...result.activityLog.slice(-99), logEntry];
     chrome.storage.local.set({ activityLog: updatedLog });
   });
 
   activeTabs.delete(tabId);
-  console.log(`🔴 Ended tracking tab ${tabId}: ${tabData.domain} (${Math.round(finalDuration/1000)}s)`);
+  console.log(`Ended tracking tab ${tabId}: ${tabData.domain} (${Math.round(finalDuration / 1000)}s)`);
 }
 
 async function handleTabActivated(newTabId, url, title) {
@@ -189,7 +193,7 @@ async function handleTabActivated(newTabId, url, title) {
 
 async function updateActiveDurations() {
   const now = Date.now();
-  
+
   for (const [tabId, tabData] of activeTabs.entries()) {
     if (tabId === activeTabId && isWindowFocused) {
       const timeDiff = now - tabData.lastUpdate;
@@ -220,8 +224,9 @@ function updateAuthStatus(result) {
 async function checkForWebAppToken() {
   try {
     const tabs = await chrome.tabs.query({});
-    const webAppTab = tabs.find(tab => 
+    const webAppTab = tabs.find(tab =>
       tab.url && (
+        tab.url.includes('localhost:5173') ||
         tab.url.includes('screentime-recoder.vercel.app') ||
         tab.url.includes('localhost:5173') || 
         tab.url.includes('localhost:3000')
@@ -238,21 +243,21 @@ async function checkForWebAppToken() {
         const token = results[0]?.result;
         if (token) {
           const { token: currentToken } = await chrome.storage.local.get(['token']);
-          
+
           if (token !== currentToken) {
             await chrome.storage.local.set({ 
               token: token,
               authStatus: 'active'
             });
-            console.log("🔐 Token synced from web app");
+            console.log("Token synced from web app");
           }
         }
       } catch (scriptError) {
-        console.warn("⚠️ Script injection failed:", scriptError);
+        console.warn("Script injection failed:", scriptError);
       }
     }
   } catch (error) {
-    console.error("❌ Error checking for web app token:", error);
+    console.error(" Error checking for web app token:", error);
   }
 }
 
@@ -261,7 +266,7 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
     const tab = await chrome.tabs.get(activeInfo.tabId);
     await handleTabActivated(activeInfo.tabId, tab.url, tab.title);
   } catch (error) {
-    console.error("⚠️ Error on tab switch:", error);
+    console.error("Error on tab switch:", error);
   }
 });
 
@@ -270,12 +275,11 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     if (activeTabs.has(tabId)) {
       await endTabTracking(tabId, 'navigation');
     }
-    
+
     if (tab.active) {
       await handleTabActivated(tabId, changeInfo.url, tab.title);
     }
   }
-  
   if (changeInfo.title && activeTabs.has(tabId)) {
     activeTabs.get(tabId).title = changeInfo.title;
   }
@@ -292,7 +296,7 @@ chrome.windows.onFocusChanged.addListener(async (windowId) => {
   }
 
   isWindowFocused = true;
-  
+
   try {
     const window = await chrome.windows.get(windowId, { populate: true });
     const activeTab = window.tabs.find((tab) => tab.active);
@@ -301,27 +305,21 @@ chrome.windows.onFocusChanged.addListener(async (windowId) => {
       await handleTabActivated(activeTab.id, activeTab.url, activeTab.title);
     }
   } catch (error) {
-    console.error("⚠️ Error on window focus:", error);
+    console.error("Error on window focus:", error);
   }
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log("📨 Received message:", message);
+  console.log(" Received message:", message);
 
   switch (message.type) {
     case 'SET_TOKEN':
-      chrome.storage.local.set({ 
-        token: message.token,
-        authStatus: 'active'
-      }, () => {
-        console.log("🔐 Token stored successfully");
-        sendResponse({ success: true });
-      });
+      
       return true;
 
     case 'GET_AUTH_STATUS':
       chrome.storage.local.get(['token', 'authStatus'], (result) => {
-        sendResponse({ 
+        sendResponse({
           isAuthenticated: !!result.token,
           status: result.authStatus || 'unknown'
         });
@@ -331,7 +329,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     case 'CLEAR_AUTH':
       endAllActiveSessions().then(() => {
         chrome.storage.local.remove(['token', 'authStatus'], () => {
-          console.log("🚪 Authentication cleared");
+          console.log(" Authentication cleared");
           sendResponse({ success: true });
         });
       });
@@ -346,8 +344,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           isActive: true,
           currentDuration: data.totalDuration + (Date.now() - data.lastUpdate)
         }));
-        
-        sendResponse({ 
+
+        sendResponse({
           activityLog: activities,
           activeTabs: currentTabs
         });
@@ -378,16 +376,16 @@ chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => 
   ];
 
   if (!allowedOrigins.includes(sender.origin)) {
-    console.warn("🚫 Rejected message from unauthorized origin:", sender.origin);
+    console.warn(" Rejected message from unauthorized origin:", sender.origin);
     return;
   }
 
   if (message.type === 'AUTH_SUCCESS') {
-    chrome.storage.local.set({ 
+    chrome.storage.local.set({
       token: message.token,
       authStatus: 'active'
     }, () => {
-      console.log("🎉 Authentication success from web app");
+      console.log("Authentication success from web app");
       sendResponse({ success: true });
     });
     return true;
@@ -395,7 +393,7 @@ chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => 
 });
 
 async function endAllActiveSessions() {
-  const promises = Array.from(activeTabs.keys()).map(tabId => 
+  const promises = Array.from(activeTabs.keys()).map(tabId =>
     endTabTracking(tabId, 'logout')
   );
   await Promise.all(promises);

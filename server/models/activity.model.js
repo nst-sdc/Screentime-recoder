@@ -7,25 +7,32 @@ const activitySchema = new mongoose.Schema(
       ref: "User",
       required: true
     },
+    tabId: {
+      type: Number
+    },
+    sessionId: {
+      type: String,
+      required: true,
+      index: true
+    },
     url: {
       type: String,
       required: true
     },
-    tabId: {
-      type: Number,
+    domain: {
+      type: String,
       required: true
     },
     tabName: {
       type: String,
       required: false
     },
-    sessionId: {
-      type: String,
-      required: false
+    title: {
+      type: String
     },
     startTime: {
       type: Date,
-      required: false
+      default: Date.now
     },
     endTime: {
       type: Date
@@ -34,16 +41,9 @@ const activitySchema = new mongoose.Schema(
       type: Number,
       default: 0
     },
-    domain: {
-      type: String,
-      required: true
-    },
-    title: {
-      type: String
-    },
     action: {
       type: String,
-      enum: ["start", "update", "end", "visit", "focus", "blur", "close", "idle"],
+      enum: ["visit", "start", "update", "end", "close"],
       default: "visit"
     },
     isActive: {

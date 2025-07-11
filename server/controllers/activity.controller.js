@@ -1,11 +1,12 @@
+import mongoose from "mongoose";
 import Activity from "../models/activity.model.js";
 import { extractDomain } from "../utils/extractDomain.js";
 
 export const logActivity = async (req, res) => {
+  console.log("📩 Received request:", req.body);
+  console.log("🔑 Authenticated user ID:", req.user?.id);
+
   try {
-    console.log("📊 Activity log request:", req.body);
-    console.log("🔑 User:", req.user?.id);
-    
     const {
       tabId,
       url,
@@ -14,7 +15,7 @@ export const logActivity = async (req, res) => {
       title,
       duration,
       endTime,
-      tabName 
+      tabName
     } = req.body;
 
     if (!req.user || !req.user.id) {
@@ -34,7 +35,7 @@ export const logActivity = async (req, res) => {
 
     if (!sessionId && (action === "update" || action === "end")) {
       console.error("❌ Missing sessionId for update/end action");
-      return res.status(400).json({ success: false, message: "SessionId is required for update/end actions" });
+      return res.status(400).json({ success: false, message: "SessionId is required" });
     }
 
     let domain = null;
@@ -56,17 +57,20 @@ export const logActivity = async (req, res) => {
           domain,
           title,
           sessionId,
-          tabName // ✅ pass to start
+          tabName
         );
         break;
+
       case "update":
         console.log("🔄 Updating session:", sessionId);
         await updateActivitySession(sessionId, duration);
         break;
+
       case "end":
         console.log("🔴 Ending session:", sessionId);
         await endActivitySession(sessionId, endTime, duration);
         break;
+
       default:
         console.log("📝 Creating legacy activity record");
         await createActivity(
@@ -76,15 +80,11 @@ export const logActivity = async (req, res) => {
           domain,
           title,
           duration,
-          tabName // ✅ pass to legacy
+          tabName
         );
     }
 
-    console.log("✅ Activity logged successfully");
-    res.status(201).json({
-      success: true,
-      message: "Activity logged successfully"
-    });
+    res.status(201).json({ success: true, message: "Activity logged successfully" });
   } catch (error) {
     console.error("❌ Activity logging failed:", error);
     res.status(500).json({
@@ -95,19 +95,7 @@ export const logActivity = async (req, res) => {
   }
 };
 
-async function startActivitySession(
-  userId,
-  tabId,
-  url,
-  domain,
-  title,
-  sessionId,
-  tabName // ✅ added
-) {
-  if (!url || !domain) {
-    throw new Error("URL and domain are required for starting a session");
-  }
-
+async function startActivitySession(userId, tabId, url, domain, title, sessionId, tabName) {
   const newActivity = new Activity({
     userId,
     url,
@@ -116,21 +104,22 @@ async function startActivitySession(
     startTime: new Date(),
     domain,
     title: title || '',
-    tabName: tabName || '', // ✅ store tab name
+    tabName: tabName || '',
     action: "visit",
     isActive: true
   });
 
-  await newActivity.save();
-  console.log("✅ Started new activity session:", newActivity.sessionId);
+  try {
+    await newActivity.save();
+    console.log("✅ Started new activity session:", newActivity.sessionId);
+  } catch (err) {
+    console.error("❌ MongoDB save FAILED:", err);
+  }
+
   return newActivity;
 }
 
 async function updateActivitySession(sessionId, duration) {
-  if (!sessionId) {
-    throw new Error("SessionId is required for updating a session");
-  }
-
   const result = await Activity.findOneAndUpdate(
     { sessionId, isActive: true },
     {
@@ -149,10 +138,6 @@ async function updateActivitySession(sessionId, duration) {
 }
 
 async function endActivitySession(sessionId, endTime, finalDuration) {
-  if (!sessionId) {
-    throw new Error("SessionId is required for ending a session");
-  }
-
   const result = await Activity.findOneAndUpdate(
     { sessionId, isActive: true },
     {
@@ -186,7 +171,7 @@ async function createActivity(userId, tabId, url, domain, title, duration, tabNa
     duration: duration || 0,
     domain,
     title,
-    tabName: tabName || '', // ✅ legacy handler
+    tabName: tabName || '',
     action: "visit",
     isActive: false
   });
@@ -198,22 +183,45 @@ async function createActivity(userId, tabId, url, domain, title, duration, tabNa
 export const getActivitySummary = async (req, res) => {
   try {
     const userId = req.user.id;
-    const data = await Activity.aggregate([
-      { $match: { userId } },
+    const { startDate, endDate, groupBy = "domain" } = req.query;
+
+    const matchQuery = {
+      userId: new mongoose.Types.ObjectId(userId),
+    };
+
+    if (startDate || endDate) {
+      matchQuery.startTime = {};
+      if (startDate) matchQuery.startTime.$gte = new Date(startDate);
+      if (endDate) matchQuery.startTime.$lte = new Date(endDate);
+    }
+
+    const pipeline = [
+      { $match: matchQuery },
       {
         $group: {
-          _id: "$domain",
+          _id: groupBy === "url" ? "$url" : "$domain",
           totalDuration: { $sum: "$duration" },
           sessionCount: { $sum: 1 },
           lastVisit: { $max: "$startTime" }
         }
       },
-      { $sort: { totalDuration: -1 } }
-    ]);
-    return res.json({ success: true, data });
-  } catch (err) {
-    console.error("getActivitySummary error:", err);
-    return res.status(500).json({ success: false, message: "Internal server error" });
+      { $sort: { totalDuration: -1 } },
+      { $limit: 50 }
+    ];
+
+    const summary = await Activity.aggregate(pipeline);
+
+    res.status(200).json({
+      success: true,
+      data: summary,
+      totalRecords: summary.length
+    });
+  } catch (error) {
+    console.error("❌ Error getting activity summary:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to get activity summary"
+    });
   }
 };
 
@@ -229,14 +237,14 @@ export const getLiveActivity = async (req, res) => {
       domain: a.domain,
       url: a.url,
       title: a.title,
-      tabName: a.tabName || "", // ✅ include in response
+      tabName: a.tabName || "",
       duration: a.duration,
       startTime: a.startTime
     }));
 
     return res.json({ success: true, data });
   } catch (err) {
-    console.error("getLiveActivity error:", err);
+    console.error("❌ getLiveActivity error:", err);
     return res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
