@@ -7,13 +7,28 @@ const activitySchema = new mongoose.Schema(
       ref: "User",
       required: true
     },
+    tabId: {
+      type: Number
+    },
+    sessionId: {
+      type: String,
+      required: true,
+      index: true
+    },
     url: {
       type: String,
       required: true
     },
-    tabId: {
-      type: Number,
+    domain: {
+      type: String,
       required: true
+    },
+    title: {
+      type: String
+    },
+    startTime: {
+      type: Date,
+      default: Date.now
     },
     sessionId: {
       type: String,
@@ -27,28 +42,17 @@ const activitySchema = new mongoose.Schema(
       type: Date
     },
     duration: {
-      type: Number, // Total active time in milliseconds
-      default: 0
-    },
-    domain: {
-      type: String,
-      required: true
-    },
-    title: {
-      type: String // Page title
+      type: Number,
+      default: 0 // in milliseconds
     },
     action: {
       type: String,
-      enum: ["start", "update", "end", "visit", "focus", "blur", "close", "idle"],
+      enum: ["visit", "start", "update", "end", "close"],
       default: "visit"
     },
     isActive: {
       type: Boolean,
-      default: true // Whether this session is currently active
-    },
-    idleTime: {
-      type: Number, // Time spent idle in milliseconds
-      default: 0
+      default: false
     }
   },
   {
@@ -56,10 +60,6 @@ const activitySchema = new mongoose.Schema(
   }
 );
 
-// Index for efficient queries
-activitySchema.index({ userId: 1, domain: 1, startTime: -1 });
-activitySchema.index({ sessionId: 1 });
-activitySchema.index({ userId: 1, isActive: 1 });
-
 const Activity = mongoose.model("Activity", activitySchema);
+
 export default Activity;

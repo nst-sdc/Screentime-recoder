@@ -2,8 +2,11 @@ import express from "express";
 import {
   createUser,
   deleteUser,
-  updateUser
+  updateUser,
+  getUserProfile  // we'll create this next
 } from "../controllers/user.controller.js";
+
+import { verifyToken } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
@@ -11,7 +14,10 @@ router.post("/", createUser);
 router.put("/:id", updateUser);
 router.delete("/:id", deleteUser);
 
-// ✅ New route to store time spent
+// Protected route to get current user profile
+router.get("/me", verifyToken, getUserProfile);
+
+// Existing time tracking route (no auth required here)
 router.post("/time", async (req, res) => {
   try {
     const { domain, startTime, endTime } = req.body;
@@ -20,7 +26,7 @@ router.post("/time", async (req, res) => {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    const duration = new Date(endTime) - new Date(startTime); // ms
+    const duration = new Date(endTime) - new Date(startTime);
 
     res.status(200).json({
       message: "Time tracked successfully",
