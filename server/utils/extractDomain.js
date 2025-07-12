@@ -1,9 +1,9 @@
-export const extractDomain = (url) => {
-    try {
-      const domain = new URL(url).hostname;
-      return domain.startsWith("www.") ? domain.slice(4) : domain;
-    } catch {
-      return "";
-    }
-  };
-  
+export function extractDomain(url) {
+  try {
+    const parsedUrl = new URL(url);
+    return parsedUrl.hostname;
+  } catch (error) {
+    console.error("Invalid URL passed to extractDomain:", url);
+    return null;
+  }
+}
