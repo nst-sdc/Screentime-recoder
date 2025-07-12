@@ -23,10 +23,21 @@ class DashboardService {
       const response = await this.api.get(`/activity/summary`, {
         params: { timeRange }
       });
-      return response.data;
+      return {
+        success: true,
+        data: Array.isArray(response.data.data) ? response.data.data : response.data.data || [],
+        timeRange,
+        timestamp: new Date().toISOString()
+      };
     } catch (error) {
       console.error('Error fetching activity summary:', error);
-      throw error;
+      return {
+        success: false,
+        data: [],
+        error: error.response?.data?.message || error.message || 'Failed to fetch activity summary',
+        timeRange,
+        timestamp: new Date().toISOString()
+      };
     }
   }
 
@@ -36,10 +47,21 @@ class DashboardService {
       const response = await this.api.get(`/activity/daily-usage`, {
         params: { date }
       });
-      return response.data;
+      return {
+        success: true,
+        data: response.data.data || [],
+        date,
+        timestamp: new Date().toISOString()
+      };
     } catch (error) {
       console.error('Error fetching daily usage:', error);
-      throw error;
+      return {
+        success: false,
+        data: [],
+        error: error.response?.data?.message || error.message || 'Failed to fetch daily usage',
+        date,
+        timestamp: new Date().toISOString()
+      };
     }
   }
 
@@ -49,21 +71,21 @@ class DashboardService {
       const response = await this.api.get(`/activity/top-sites`, {
         params: { limit }
       });
-      return response.data;
+      return {
+        success: true,
+        data: response.data.data || [],
+        limit,
+        timestamp: new Date().toISOString()
+      };
     } catch (error) {
       console.error('Error fetching top sites:', error);
-      throw error;
-    }
-  }
-
-  // Get active sessions
-  async getActiveSessions() {
-    try {
-      const response = await this.api.get('/activity/active');
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching active sessions:', error);
-      throw error;
+      return {
+        success: false,
+        data: [],
+        error: error.response?.data?.message || error.message || 'Failed to fetch top sites',
+        limit,
+        timestamp: new Date().toISOString()
+      };
     }
   }
 
@@ -102,19 +124,17 @@ class DashboardService {
     }));
   }
 
-  // Transform daily usage data for line chart
   transformDailyUsage(backendData) {
     if (!backendData || !Array.isArray(backendData)) {
       return [];
     }
 
     return backendData.map(item => ({
-      time: item.time, // Should already be in HH:MM format from backend
-      usage: item.usage // Should already be in minutes from backend
+      time: item.time,
+      usage: item.usage
     }));
   }
 
-  // Transform top sites data
   transformTopSites(backendData) {
     if (!backendData || !Array.isArray(backendData)) {
       return [];
@@ -168,6 +188,144 @@ class DashboardService {
       .reduce((sum, item) => sum + item.minutes, 0);
 
     return Math.round((productiveTime / totalTime) * 100);
+  }
+
+  // Get category analytics
+  async getCategoryAnalytics(startDate, endDate, period = 'day') {
+    try {
+      const response = await this.api.get('/activity/analytics/categories', {
+        params: { startDate, endDate, period }
+      });
+      return {
+        success: true,
+        data: response.data.data || response.data,
+        params: { startDate, endDate, period },
+        timestamp: new Date().toISOString()
+      };
+    } catch (error) {
+      console.error('Error fetching category analytics:', error);
+      return {
+        success: false,
+        data: { categoryBreakdown: [], overview: null },
+        error: error.response?.data?.message || error.message || 'Failed to fetch category analytics',
+        params: { startDate, endDate, period },
+        timestamp: new Date().toISOString()
+      };
+    }
+  }
+
+  // Get productivity insights
+  async getProductivityInsights(days = 7) {
+    try {
+      const response = await this.api.get('/activity/analytics/productivity', {
+        params: { days }
+      });
+      return {
+        success: true,
+        data: response.data.data || response.data,
+        days,
+        timestamp: new Date().toISOString()
+      };
+    } catch (error) {
+      console.error('Error fetching productivity insights:', error);
+      return {
+        success: false,
+        data: { dailyTrends: [], overview: null },
+        error: error.response?.data?.message || error.message || 'Failed to fetch productivity insights',
+        days,
+        timestamp: new Date().toISOString()
+      };
+    }
+  }
+
+  // Get all categories
+  async getCategories() {
+    try {
+      const response = await this.api.get('/activity/categories');
+      return {
+        success: true,
+        data: response.data.data || response.data,
+        timestamp: new Date().toISOString()
+      };
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      return {
+        success: false,
+        data: [],
+        error: error.response?.data?.message || error.message || 'Failed to fetch categories',
+        timestamp: new Date().toISOString()
+      };
+    }
+  }
+
+  // Trigger recategorization of activities
+  async recategorizeActivities(days = 1) {
+    try {
+      const response = await this.api.post('/activity/recategorize', {}, {
+        params: { days }
+      });
+      return {
+        success: true,
+        data: response.data,
+        days,
+        timestamp: new Date().toISOString()
+      };
+    } catch (error) {
+      console.error('Error recategorizing activities:', error);
+      return {
+        success: false,
+        error: error.response?.data?.message || error.message || 'Failed to recategorize activities',
+        days,
+        timestamp: new Date().toISOString()
+      };
+    }
+  }
+
+  // Validate and sanitize activity data
+  validateActivityData(data) {
+    if (!data || !Array.isArray(data)) {
+      return [];
+    }
+
+    return data.filter(item => {
+      // Basic validation
+      return item && 
+             (item._id || item.domain) && 
+             typeof (item.totalDuration || item.duration) === 'number';
+    }).map(item => {
+      // Ensure productivity is a valid number
+      const rawProductivity = item.avgProductivityScore || item.productivity || 5;
+      const productivity = typeof rawProductivity === 'number' 
+        ? Math.min(10, Math.max(0, rawProductivity))
+        : Math.min(10, Math.max(0, parseFloat(rawProductivity) || 5));
+
+      return {
+        // Normalize the data structure
+        id: item._id || item.domain || `item-${Math.random()}`,
+        domain: item._id || item.domain || 'Unknown',
+        totalDuration: Math.max(0, item.totalDuration || item.duration || 0),
+        duration: Math.max(0, item.totalDuration || item.duration || 0),
+        sessions: Math.max(1, parseInt(item.sessionCount || item.sessions || 1)),
+        productivity,
+        lastVisit: item.lastVisit || item.updatedAt || new Date().toISOString(),
+        categoryName: item.categoryName || item.category || 'Uncategorized'
+      };
+    });
+  }
+
+  // Enhanced error handling wrapper
+  async safeApiCall(apiFunction, fallbackData = []) {
+    try {
+      const result = await apiFunction();
+      return result.success ? result : { success: false, data: fallbackData, error: result.error };
+    } catch (error) {
+      console.error('API call failed:', error);
+      return { 
+        success: false, 
+        data: fallbackData, 
+        error: error.message || 'Unknown error occurred' 
+      };
+    }
   }
 }
 

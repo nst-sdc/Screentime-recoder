@@ -7,7 +7,7 @@ export const deleteOldActivity = async () => {
   try {
     const result = await Activity.deleteMany({ createdAt: { $lt: cutoff } });
     console.log(
-      `🧹 Deleted ${result.deletedCount} activity records older than 90 days.`
+      `Deleted ${result.deletedCount} activity records older than 90 days.`
     );
   } catch (err) {
     console.error("Error during automatic data cleanup:", err);
