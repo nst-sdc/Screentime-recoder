@@ -3,9 +3,6 @@ import Activity from "../models/activity.model.js";
 import { extractDomain } from "../utils/extractDomain.js";
 
 export const logActivity = async (req, res) => {
-  console.log("📩 Received request:", req.body);
-  console.log("🔑 Authenticated user ID:", req.user?.id);
-
   try {
     const {
       tabId,
@@ -19,37 +16,31 @@ export const logActivity = async (req, res) => {
     } = req.body;
 
     if (!req.user || !req.user.id) {
-      console.error("❌ Unauthorized - no user in request");
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
     if (!action) {
-      console.error("❌ Missing action field");
       return res.status(400).json({ success: false, message: "Action is required" });
     }
 
     if (!url && action === "start") {
-      console.error("❌ Missing URL for start action");
       return res.status(400).json({ success: false, message: "URL is required for start action" });
     }
 
     if (!sessionId && (action === "update" || action === "end")) {
-      console.error("❌ Missing sessionId for update/end action");
-      return res.status(400).json({ success: false, message: "SessionId is required" });
+      return res.status(400).json({ success: false, message: "SessionId is required for update/end actions" });
     }
 
     let domain = null;
     if (url) {
       domain = extractDomain(url);
       if (!domain) {
-        console.error("❌ Invalid URL:", url);
         return res.status(400).json({ success: false, message: "Invalid URL" });
       }
     }
 
     switch (action) {
       case "start":
-        console.log("🟢 Starting new session");
         await startActivitySession(
           req.user.id,
           tabId,
@@ -57,22 +48,19 @@ export const logActivity = async (req, res) => {
           domain,
           title,
           sessionId,
-          tabName
+          tabName 
         );
         break;
 
       case "update":
-        console.log("🔄 Updating session:", sessionId);
         await updateActivitySession(sessionId, duration);
         break;
 
       case "end":
-        console.log("🔴 Ending session:", sessionId);
         await endActivitySession(sessionId, endTime, duration);
         break;
 
       default:
-        console.log("📝 Creating legacy activity record");
         await createActivity(
           req.user.id,
           tabId,
@@ -80,13 +68,16 @@ export const logActivity = async (req, res) => {
           domain,
           title,
           duration,
-          tabName
+          tabName 
         );
     }
 
-    res.status(201).json({ success: true, message: "Activity logged successfully" });
+    res.status(201).json({
+      success: true,
+      message: "Activity logged successfully"
+    });
   } catch (error) {
-    console.error("❌ Activity logging failed:", error);
+    console.error("Activity logging failed:", error);
     res.status(500).json({
       success: false,
       message: "Internal server error",
@@ -95,7 +86,15 @@ export const logActivity = async (req, res) => {
   }
 };
 
-async function startActivitySession(userId, tabId, url, domain, title, sessionId, tabName) {
+async function startActivitySession(
+  userId,
+  tabId,
+  url,
+  domain,
+  title,
+  sessionId,
+  tabName 
+) {
   const newActivity = new Activity({
     userId,
     url,
@@ -104,18 +103,12 @@ async function startActivitySession(userId, tabId, url, domain, title, sessionId
     startTime: new Date(),
     domain,
     title: title || '',
-    tabName: tabName || '',
+    tabName: tabName || '', 
     action: "visit",
     isActive: true
   });
 
-  try {
-    await newActivity.save();
-    console.log("✅ Started new activity session:", newActivity.sessionId);
-  } catch (err) {
-    console.error("❌ MongoDB save FAILED:", err);
-  }
-
+  await newActivity.save();
   return newActivity;
 }
 
@@ -129,9 +122,7 @@ async function updateActivitySession(sessionId, duration) {
   );
 
   if (!result) {
-    console.warn("⚠️ No active session found for sessionId:", sessionId);
-  } else {
-    console.log("🔄 Updated activity session:", sessionId, "duration:", duration);
+    console.warn("No active session found for sessionId:", sessionId);
   }
 
   return result;
@@ -149,9 +140,7 @@ async function endActivitySession(sessionId, endTime, finalDuration) {
   );
 
   if (!result) {
-    console.warn("⚠️ No active session found for sessionId:", sessionId);
-  } else {
-    console.log("🔴 Ended activity session:", sessionId, "duration:", finalDuration);
+    console.warn("No active session found for sessionId:", sessionId);
   }
 
   return result;
@@ -171,7 +160,7 @@ async function createActivity(userId, tabId, url, domain, title, duration, tabNa
     duration: duration || 0,
     domain,
     title,
-    tabName: tabName || '',
+    tabName: tabName || '', 
     action: "visit",
     isActive: false
   });
@@ -217,7 +206,7 @@ export const getActivitySummary = async (req, res) => {
       totalRecords: summary.length
     });
   } catch (error) {
-    console.error("❌ Error getting activity summary:", error);
+    console.error("Error getting activity summary:", error);
     res.status(500).json({
       success: false,
       message: "Failed to get activity summary"
@@ -237,14 +226,14 @@ export const getLiveActivity = async (req, res) => {
       domain: a.domain,
       url: a.url,
       title: a.title,
-      tabName: a.tabName || "",
+      tabName: a.tabName || "", 
       duration: a.duration,
       startTime: a.startTime
     }));
 
     return res.json({ success: true, data });
   } catch (err) {
-    console.error("❌ getLiveActivity error:", err);
+    console.error("getLiveActivity error:", err);
     return res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
