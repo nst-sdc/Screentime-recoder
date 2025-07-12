@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import BarChart from "../components/charts/BarChart";
 import AppList from "../components/charts/AppList";
-import { trackTimeOnDomain } from "../utils/tracker"; // Adjust path if needed
+import { trackTimeOnDomain } from "../utils/tracker"; 
 import { DateRange } from "react-date-range";
 import 'react-date-range/dist/styles.css';
 import 'react-date-range/dist/theme/default.css';
@@ -218,7 +218,6 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
-
     </div>
   );
 };

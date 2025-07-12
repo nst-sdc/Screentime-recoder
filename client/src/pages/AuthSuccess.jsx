@@ -4,19 +4,47 @@ import { useAuth } from "../contexts/AuthContext";
 
 const AuthSuccess = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, token } = useAuth();
 
   useEffect(
     () => {
       if (!isLoading) {
-        if (isAuthenticated) {
-          navigate("/dashboard");
+        if (isAuthenticated && token) {
+          // Send token to extension
+          try {
+            chrome.runtime.sendMessage(
+              process.env.REACT_APP_EXTENSION_ID || "your-extension-id",
+              {
+                type: "AUTH_SUCCESS",
+                token: token
+              },
+              response => {
+                if (chrome.runtime.lastError) {
+                  console.log(
+                    "Extension not found or not responding:",
+                    chrome.runtime.lastError
+                  );
+                } else {
+                  console.log(
+                    "Token sent to extension successfully:",
+                    response
+                  );
+                }
+                // Navigate to dashboard regardless
+                navigate("/dashboard");
+              }
+            );
+          } catch (error) {
+            console.log("Error communicating with extension:", error);
+            // Navigate to dashboard even if extension communication fails
+            navigate("/dashboard");
+          }
         } else {
           navigate("/login?error=authentication_failed");
         }
       }
     },
-    [isAuthenticated, isLoading, navigate]
+    [isAuthenticated, isLoading, token, navigate]
   );
 
   return (
