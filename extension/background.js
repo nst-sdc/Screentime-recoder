@@ -1,4 +1,4 @@
-console.log("📡 Enhanced Background script is running...");
+console.log("Enhanced Background script is running...");
 
 chrome.runtime.onInstalled.addListener(() => {
   console.log("Extension installed.");
@@ -13,8 +13,8 @@ let updateInterval = null;
 
 // Initialize tracking
 function initializeTracking() {
-  updateInterval = setInterval(updateActiveDurations, 10000);
-  setInterval(checkForWebAppToken, 5000);
+  updateInterval = setInterval(updateActiveDurations, 30000);
+  setInterval(checkForWebAppToken, 60000);
 
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     if (tabs[0]) {
@@ -31,23 +31,57 @@ async function sendToBackend(activity) {
   try {
     const { token } = await chrome.storage.local.get(["token"]);
 
-    if (!token) return;
+    if (!token) {
+      console.log("No token available for backend communication");
+      return { reason: "no_token" };
+    }
 
+    // Enhanced activity validation
     if (
       !activity ||
       typeof activity !== "object" ||
       !activity.sessionId ||
-      !activity.action ||
-      !activity.url ||
-      typeof activity.url !== "string" ||
-      !activity.url.startsWith("http")
+      !activity.action
     ) {
-      console.warn("Skipping invalid activity:", activity);
-      return;
+      console.warn("Skipping invalid activity (missing required fields):", activity);
+      return { reason: "invalid_activity" };
     }
 
-    // Use production backend URL - update this to match your actual Render URL
-    const backendUrl = "https://screentime-recoder.onrender.com/api/activity/log";
+    // URL validation - only required for certain actions
+    if (activity.action === 'start' || activity.action === 'visit') {
+      if (!activity.url || typeof activity.url !== "string") {
+        console.warn("Skipping activity with missing URL:", activity);
+        return { reason: "missing_url" };
+      }
+
+      // Validate URL format
+      try {
+        new URL(activity.url);
+        if (!activity.url.startsWith("http")) {
+          console.warn("Skipping non-HTTP URL:", activity.url);
+          return { reason: "invalid_url_protocol" };
+        }
+      } catch (urlError) {
+        console.warn("Skipping activity with invalid URL:", activity.url);
+        return { reason: "invalid_url_format" };
+      }
+    } else if (activity.action === 'update' || activity.action === 'end') {
+      if (activity.url && typeof activity.url === "string") {
+        try {
+          new URL(activity.url);
+          if (!activity.url.startsWith("http")) {
+            console.warn("Invalid URL protocol for update/end action:", activity.url);
+            delete activity.url;
+          }
+        } catch (urlError) {
+          console.warn("Invalid URL format for update/end action:", activity.url);
+          delete activity.url;
+        }
+      }
+    }
+
+    // Backend URL
+    const backendUrl = "http://localhost:3000/api/activity/log";
     
     const response = await fetch(backendUrl, {
       method: "POST",
@@ -61,13 +95,19 @@ async function sendToBackend(activity) {
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       console.warn(`Backend returned ${response.status}:`, errorData);
-      return;
+      
+      if (response.status === 401) {
+        return { reason: "auth_failed" };
+      }
+      return { reason: "backend_error", status: response.status };
     }
 
     const result = await response.json();
     console.log("Activity sent to backend:", result);
+    return { success: true, data: result };
   } catch (error) {
     console.error("Network error:", error);
+    return { reason: "network_error", error: error.message };
   }
 }
 
@@ -119,7 +159,7 @@ async function startTabTracking(tabId, url, title) {
 
 async function updateTabDuration(tabId, additionalTime) {
   const tabData = activeTabs.get(tabId);
-  if (!tabData) return;
+  if (!tabData || additionalTime <= 0) return;
 
   tabData.totalDuration += additionalTime;
   tabData.lastUpdate = Date.now();
@@ -131,11 +171,16 @@ async function updateTabDuration(tabId, additionalTime) {
       const activity = {
         sessionId: tabData.sessionId,
         action: 'update',
-        duration: tabData.totalDuration
+        duration: tabData.totalDuration,
+        url: tabData.url,
+        domain: tabData.domain,
+        title: tabData.title
       };
 
       const result = await sendToBackend(activity);
-      updateAuthStatus(result);
+      if (result) {
+        updateAuthStatus(result);
+      }
     }
   }
 }
@@ -153,7 +198,10 @@ async function endTabTracking(tabId, reason = 'close') {
       sessionId: tabData.sessionId,
       action: 'end',
       endTime: new Date(endTime).toISOString(),
-      duration: finalDuration
+      duration: finalDuration,
+      url: tabData.url,
+      domain: tabData.domain,
+      title: tabData.title
     };
 
     const result = await sendToBackend(activity);
@@ -199,25 +247,24 @@ async function updateActiveDurations() {
       const timeDiff = now - tabData.lastUpdate;
       await updateTabDuration(tabId, timeDiff);
     }
-    // Update duration for all tabs, not just active focused tab
-    const timeDiff = now - tabData.lastUpdate;
-    await updateTabDuration(tabId, timeDiff);
   }
 }
 
 function updateAuthStatus(result) {
+  if (!result) return;
+  
   if (result.reason === "auth_failed") {
     chrome.storage.local.set({ authStatus: 'failed' });
-    console.log("🔐 Authentication failed - token may be invalid");
+    console.log("Authentication failed - token may be invalid");
   } else if (result.reason === "no_token") {
     chrome.storage.local.set({ authStatus: 'no_token' });
-    console.log("⚠️ No authentication token found");
+    console.log("No authentication token found");
   } else if (result.reason === "network_error") {
     chrome.storage.local.set({ authStatus: 'network_error' });
-    console.log("🌐 Network error when sending data");
+    console.log("Network error when sending data");
   } else if (result.success) {
     chrome.storage.local.set({ authStatus: 'active' });
-    console.log("✅ Successfully sent data to backend");
+    console.log("Successfully sent data to backend");
   }
 }
 
@@ -227,9 +274,9 @@ async function checkForWebAppToken() {
     const webAppTab = tabs.find(tab =>
       tab.url && (
         tab.url.includes('localhost:5173') ||
-        tab.url.includes('screentime-recoder.vercel.app') ||
-        tab.url.includes('localhost:5173') || 
-        tab.url.includes('localhost:3000')
+        tab.url.includes('localhost:5174') ||
+        tab.url.includes('localhost:3000') ||
+        tab.url.includes('screentime-recoder.vercel.app')
       )
     );
 
@@ -314,7 +361,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   switch (message.type) {
     case 'SET_TOKEN':
-      
+      console.log("🔐 Storing auth token");
+      chrome.storage.local.set({
+        token: message.token,
+        authStatus: 'authenticated'
+      }, () => {
+        console.log("Token stored successfully");
+        sendResponse({ success: true });
+      });
       return true;
 
     case 'GET_AUTH_STATUS':
@@ -369,7 +423,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => {
   const allowedOrigins = [
-    'http://localhost:5173', 
+    'http://localhost:5173',
     'http://localhost:3000', 
     'https://screentime-recoder.vercel.app',
     'https://screentime-recoder.onrender.com'

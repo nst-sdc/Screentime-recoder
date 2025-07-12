@@ -8,8 +8,6 @@ export const addReminder = async (req, res) => {
     });
 
     await newReminder.save();
-
-    // ✅ Send wrapped response
     res.status(201).json({ reminder: newReminder });
   } catch (error) {
     console.error("Error adding reminder:", error);
@@ -19,7 +17,9 @@ export const addReminder = async (req, res) => {
 
 export const getUserReminders = async (req, res) => {
   try {
-    const reminders = await Reminder.find({ userId: req.user.id }).sort({ createdAt: -1 });
+    const reminders = await Reminder.find({ userId: req.user.id }).sort({
+      createdAt: -1
+    });
     res.status(200).json(reminders);
   } catch (error) {
     console.error("Error getting reminders:", error);

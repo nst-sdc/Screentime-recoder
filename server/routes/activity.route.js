@@ -1,6 +1,13 @@
 import express from "express";
 import Activity from "../models/activity.model.js";
-import { logActivity, getActivitySummary, getLiveActivity } from "../controllers/activity.controller.js";
+import {
+  logActivity,
+  getActivitySummary,
+  getCategoryAnalytics,
+  getProductivityInsights,
+  getCategories,
+  recategorizeActivities
+} from "../controllers/activity.controller.js";
 import { verifyToken } from "../middleware/auth.js";
 
 const router = express.Router();
@@ -9,18 +16,31 @@ router.post("/log", verifyToken, logActivity);
 router.post("/", verifyToken, logActivity);
 router.get("/summary", verifyToken, getActivitySummary);
 
-// Live activity endpoint
-router.get("/active", verifyToken, getLiveActivity);
+// Category and productivity analytics
+router.get("/analytics/categories", verifyToken, getCategoryAnalytics);
+router.get("/analytics/productivity", verifyToken, getProductivityInsights);
+router.get("/categories", verifyToken, getCategories);
+router.post("/recategorize", verifyToken, recategorizeActivities);
 
 router.post("/end-all", verifyToken, async (req, res) => {
   try {
-    const result = await Activity.updateMany({ userId: req.user.id, isActive: true }, {
-      isActive: false, endTime: new Date(), action: "close"
+    const result = await Activity.updateMany(
+      { userId: req.user.id, isActive: true },
+      {
+        isActive: false,
+        endTime: new Date(),
+        action: "close"
+      }
+    );
+    res.json({
+      success: true,
+      message: `Ended ${result.modifiedCount} active sessions`
     });
-    res.json({ success: true, message: `Ended ${result.modifiedCount} active sessions` });
   } catch (err) {
     console.error("Error ending sessions:", err);
-    res.status(500).json({ success: false, message: "Failed to end active sessions" });
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to end active sessions" });
   }
 });
 
@@ -33,23 +53,19 @@ router.get("/", (req, res) => {
 router.get("/test-summary", async (req, res) => {
   try {
     if (process.env.NODE_ENV === "production") {
-      return res
-        .status(403)
-        .json({
-          success: false,
-          message: "Test endpoints not allowed in production"
-        });
+      return res.status(403).json({
+        success: false,
+        message: "Test endpoints not allowed in production"
+      });
     }
 
     // Use the default test user
     const defaultUser = await User.findOne({ email: "test@example.com" });
     if (!defaultUser) {
-      return res
-        .status(404)
-        .json({
-          success: false,
-          message: "No test user found. Run /seed first."
-        });
+      return res.status(404).json({
+        success: false,
+        message: "No test user found. Run /seed first."
+      });
     }
 
     // Get activities for test user
@@ -100,22 +116,18 @@ router.get("/test-summary", async (req, res) => {
 router.get("/test-daily-usage", async (req, res) => {
   try {
     if (process.env.NODE_ENV === "production") {
-      return res
-        .status(403)
-        .json({
-          success: false,
-          message: "Test endpoints not allowed in production"
-        });
+      return res.status(403).json({
+        success: false,
+        message: "Test endpoints not allowed in production"
+      });
     }
 
     const defaultUser = await User.findOne({ email: "test@example.com" });
     if (!defaultUser) {
-      return res
-        .status(404)
-        .json({
-          success: false,
-          message: "No test user found. Run /seed first."
-        });
+      return res.status(404).json({
+        success: false,
+        message: "No test user found. Run /seed first."
+      });
     }
 
     const activities = await Activity.find({ userId: defaultUser._id }).sort({
@@ -158,22 +170,18 @@ router.get("/test-daily-usage", async (req, res) => {
 router.get("/test-top-sites", async (req, res) => {
   try {
     if (process.env.NODE_ENV === "production") {
-      return res
-        .status(403)
-        .json({
-          success: false,
-          message: "Test endpoints not allowed in production"
-        });
+      return res.status(403).json({
+        success: false,
+        message: "Test endpoints not allowed in production"
+      });
     }
 
     const defaultUser = await User.findOne({ email: "test@example.com" });
     if (!defaultUser) {
-      return res
-        .status(404)
-        .json({
-          success: false,
-          message: "No test user found. Run /seed first."
-        });
+      return res.status(404).json({
+        success: false,
+        message: "No test user found. Run /seed first."
+      });
     }
 
     const activities = await Activity.find({ userId: defaultUser._id }).sort({
@@ -239,4 +247,3 @@ function formatDuration(ms) {
 }
 
 export default router;
-
