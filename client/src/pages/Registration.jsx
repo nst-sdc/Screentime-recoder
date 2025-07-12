@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import UndrawSVG from "../assets/undraw.svg";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 
@@ -200,17 +201,19 @@ const Registration = () => {
 
         {/* Right Side */}
         <div className="flex flex-col items-center justify-center bg-green-100 dark:bg-[#1f2c33] p-12 space-y-6">
-          <div className="w-80 h-80 bg-gradient-to-br from-green-200 to-green-300 dark:from-green-700 dark:to-green-800 rounded-lg shadow-md border border-green-200 flex items-center justify-center">
-            <p className="text-lg font-semibold text-green-800 dark:text-green-200 text-center">
-              Start Your Journey
-            </p>
-          </div>
-          <h2 className="text-2xl font-semibold text-green-800 dark:text-whatsDark-text text-center">
-            Join thousands of users improving their productivity
-          </h2>
-          <p className="text-green-700 dark:text-whatsDark-text text-center max-w-sm">
-            Track your screen time, manage tasks, and achieve your goals with our powerful productivity tools.
-          </p>
+        <div className="w-80 h-80 flex items-center justify-center">
+          <img
+            src={UndrawSVG}
+            alt="Undraw Illustration"
+            className="w-full max-w-[220px] object-contain rounded-lg shadow-lg"
+          />
+        </div>
+        <h2 className="text-2xl font-semibold text-green-800 dark:text-whatsDark-text text-center">
+          Join thousands of users improving their productivity
+        </h2>
+        <p className="text-green-700 dark:text-whatsDark-text text-center max-w-sm">
+          Track your screen time, manage tasks, and achieve your goals with our powerful productivity tools.
+        </p>
         </div>
       </div>
     </div>
