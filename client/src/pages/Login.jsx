@@ -205,13 +205,8 @@ const Login = () => {
               alt="Undraw Illustration"
               className="w-full max-w-[220px] object-contain rounded-lg shadow-lg"
             />
-
-          <div className="w-80 h-80 bg-gradient-to-br from-green-200 to-green-300 dark:from-green-700 dark:to-green-800 rounded-lg shadow-md border border-green-200 flex items-center justify-center">
-            <div className="text-center text-green-800 dark:text-green-200">
-              <p className="text-lg font-semibold">Secure Login</p>
-            </div>
-
           </div>
+
           <h2 className="text-2xl font-semibold text-green-800 dark:text-whatsDark-text text-center">
             Effortlessly manage your time and productivity
           </h2>
