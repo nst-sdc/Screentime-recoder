@@ -23,6 +23,10 @@ const activitySchema = new mongoose.Schema(
       type: String,
       required: true
     },
+    tabName: {
+      type: String,
+      required: false
+    },
     title: {
       type: String
     },
@@ -30,20 +34,12 @@ const activitySchema = new mongoose.Schema(
       type: Date,
       default: Date.now
     },
-    sessionId: {
-      type: String,
-      required: false
-    },
-    startTime: {
-      type: Date,
-      required: false
-    },
     endTime: {
       type: Date
     },
     duration: {
       type: Number,
-      default: 0 // in milliseconds
+      default: 0
     },
     action: {
       type: String,
@@ -52,7 +48,11 @@ const activitySchema = new mongoose.Schema(
     },
     isActive: {
       type: Boolean,
-      default: false
+      default: true
+    },
+    idleTime: {
+      type: Number,
+      default: 0
     }
   },
   {
@@ -60,6 +60,9 @@ const activitySchema = new mongoose.Schema(
   }
 );
 
-const Activity = mongoose.model("Activity", activitySchema);
+activitySchema.index({ userId: 1, domain: 1, startTime: -1 });
+activitySchema.index({ sessionId: 1 });
+activitySchema.index({ userId: 1, isActive: 1 });
 
+const Activity = mongoose.model("Activity", activitySchema);
 export default Activity;
