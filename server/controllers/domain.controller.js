@@ -1,38 +1,26 @@
-import DomainActivity from "../models/domainActivity.model.js";
+import Activity from "../models/activity.model.js";
 
-// POST: /api/domain
-export const trackDomainActivity = async (req, res) => {
-    try {
-        const { domain, startTime, endTime, user } = req.body;
+export const trackDomain = async (req, res) => {
+  try {
+    const { url, duration } = req.body;
+    const userId = req.user?._id || req.user?.id;
 
-        if (!domain || !startTime || !endTime) {
-            return res.status(400).json({ message: "All fields are required" });
-        }
-
-        const newActivity = new DomainActivity({
-            domain,
-            startTime,
-            endTime,
-            user,
-        });
-
-        await newActivity.save();
-
-        res.status(201).json({
-            message: "Activity saved successfully",
-            data: newActivity,
-        });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
+    if (!url || !duration || !userId) {
+      console.log("Missing fields:", { url, duration, userId });
+      return res.status(400).json({ message: "Missing url, duration, or userId" });
     }
-};
 
-// GET: /api/domain
-export const getAllActivities = async (req, res) => {
-    try {
-        const activities = await DomainActivity.find().sort({ startTime: -1 });
-        res.json(activities);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+    const activity = new Activity({
+      url,
+      duration,
+      userId,
+      timestamp: new Date()
+    });
+
+    await activity.save();
+    res.status(200).json({ message: "Activity recorded" });
+  } catch (error) {
+    console.error("Error saving activity:", error);
+    res.status(500).json({ message: "Failed to record activity" });
+  }
 };

@@ -1,48 +1,63 @@
 import express from "express";
-import DomainActivity from "../models/domainActivity.model.js";
+import Activity from "../models/activity.model.js";
+import categorizeDomain from "../utils/category.util.js";
+import { verifyToken } from "../middleware/auth.js";
 
 const router = express.Router();
 
-/**
- * POST /api/domain
- * Logs a domain activity entry
- */
-router.post("/", async (req, res) => {
-    try {
-        const { domain, startTime, endTime, user } = req.body;
+// Domain tracker
+router.post("/track", verifyToken, async (req, res) => {
+  const {
+    url,
+    action = "visit",
+    tabId = 0,
+    duration,
+    sessionId,
+    title,
+    startTime,
+    isActive = true,
+    idleTime = 0
+  } = req.body;
 
-        if (!domain || !startTime || !endTime) {
-            return res.status(400).json({ message: "All fields are required" });
-        }
+  if (!url || duration == null) {
+    return res.status(400).json({ message: "url and duration are required" });
+  }
 
-        const entry = new DomainActivity({
-            domain,
-            startTime,
-            endTime,
-            user,
-        });
+  if (!sessionId) {
+    return res.status(400).json({ message: "sessionId is required" });
+  }
 
-        await entry.save();
-        res.status(201).json({
-            message: "Domain activity saved successfully",
-            data: entry,
-        });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
+  let domain;
+  try {
+    domain = new URL(url).hostname;
+  } catch (error) {
+    console.error("Invalid URL provided:", url);
+    return res.status(400).json({ message: "Invalid URL format" });
+  }
 
-/**
- * GET /api/domain
- * Fetch all domain activity logs (sorted by start time descending)
- */
-router.get("/", async (req, res) => {
-    try {
-        const logs = await DomainActivity.find().sort({ startTime: -1 });
-        res.status(200).json(logs);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+  const category = categorizeDomain(domain);
+
+  try {
+    await new Activity({
+      userId: req.user.id,
+      url,
+      domain,
+      sessionId,
+      title: title || domain,
+      startTime: startTime ? new Date(startTime) : new Date(),
+      action,
+      tabId,
+      timestamp: new Date(),
+      duration,
+      isActive,
+      idleTime
+    }).save();
+
+    res.status(201).json({ message: "Activity recorded", domain, category });
+  } catch (err) {
+    console.error("Error recording activity:", err);
+    res.status(500).json({ message: "Failed to record activity" });
+  }
 });
 
 export default router;
