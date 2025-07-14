@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import ActivityHeatmap from "../components/charts/ActivityHeatmap";
 import AppList from "../components/charts/AppList";
@@ -36,18 +37,16 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Transform raw activity data for enhanced components
+  const navigate = useNavigate();
+
   const transformActivityData = rawData => {
     if (!Array.isArray(rawData)) return [];
 
     return rawData.map((item, index) => {
-      // Ensure productivity is a valid number
-      const rawProductivity =
-        item.avgProductivityScore || item.productivity || 5;
-      const productivity =
-        typeof rawProductivity === "number"
-          ? Math.min(10, Math.max(0, rawProductivity))
-          : Math.min(10, Math.max(0, parseFloat(rawProductivity) || 5));
+      const rawProductivity = item.avgProductivityScore || item.productivity || 5;
+      const productivity = typeof rawProductivity === "number"
+        ? Math.min(10, Math.max(0, rawProductivity))
+        : Math.min(10, Math.max(0, parseFloat(rawProductivity) || 5));
 
       return {
         id: item._id || `item-${index}`,
@@ -62,7 +61,6 @@ const Dashboard = () => {
     });
   };
 
-  // Transform category data for charts
   const transformCategoryData = rawData => {
     if (!Array.isArray(rawData)) return [];
 
@@ -89,12 +87,10 @@ const Dashboard = () => {
       categoryMap[category].sessions += item.sessionCount || 1;
       categoryMap[category].domains.add(item._id);
 
-      // Safely handle productivity values
       const productivityValue = item.avgProductivityScore || 5;
-      const validProductivity =
-        typeof productivityValue === "number"
-          ? Math.min(10, Math.max(0, productivityValue))
-          : Math.min(10, Math.max(0, parseFloat(productivityValue) || 5));
+      const validProductivity = typeof productivityValue === "number"
+        ? Math.min(10, Math.max(0, productivityValue))
+        : Math.min(10, Math.max(0, parseFloat(productivityValue) || 5));
 
       categoryMap[category].productivity.push(validProductivity);
       total += duration;
@@ -114,7 +110,6 @@ const Dashboard = () => {
     }));
   };
 
-  // Get category color mapping
   const getCategoryColor = category => {
     const colorMap = {
       Entertainment: "#EF4444",
@@ -126,78 +121,74 @@ const Dashboard = () => {
     return colorMap[category] || "#6B7280";
   };
 
-  useEffect(
-    () => {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setError("No authentication token found");
-        setLoading(false);
-        return;
-      }
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setError("No authentication token found");
+      setLoading(false);
+      return;
+    }
 
-      const stopTracking = trackTimeOnDomain("Dashboard");
+    const stopTracking = trackTimeOnDomain("Dashboard");
 
-      const fetchSummary = async () => {
-        try {
-          setLoading(true);
-          setError(null);
+    const fetchSummary = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-          const response = await dashboardService.getActivitySummary(timeRange);
+        const response = await dashboardService.getActivitySummary(timeRange);
 
-          if (response && response.data) {
-            const rawData = response.data;
-            const transformedSummary = transformActivityData(rawData);
-            const transformedCategories = transformCategoryData(rawData);
+        if (response && response.data) {
+          const rawData = response.data;
+          const transformedSummary = transformActivityData(rawData);
+          const transformedCategories = transformCategoryData(rawData);
 
-            setSummary(transformedSummary);
-            setCategorySummary(transformedCategories);
+          setSummary(transformedSummary);
+          setCategorySummary(transformedCategories);
 
-            const total = rawData.reduce(
-              (sum, item) => sum + (item.totalDuration || 0),
-              0
-            );
-            setTotalDuration(total);
-          } else {
-            const directResponse = await axios.get(
-              "http://localhost:3000/api/activity/summary",
-              {
-                headers: { Authorization: `Bearer ${token}` },
-                params: { timeRange }
-              }
-            );
+          const total = rawData.reduce(
+            (sum, item) => sum + (item.totalDuration || 0),
+            0
+          );
+          setTotalDuration(total);
+        } else {
+          const directResponse = await axios.get(
+            "http://localhost:3000/api/activity/summary",
+            {
+              headers: { Authorization: `Bearer ${token}` },
+              params: { timeRange }
+            }
+          );
 
-            const rawData = directResponse.data.data || [];
-            const transformedSummary = transformActivityData(rawData);
-            const transformedCategories = transformCategoryData(rawData);
+          const rawData = directResponse.data.data || [];
+          const transformedSummary = transformActivityData(rawData);
+          const transformedCategories = transformCategoryData(rawData);
 
-            setSummary(transformedSummary);
-            setCategorySummary(transformedCategories);
+          setSummary(transformedSummary);
+          setCategorySummary(transformedCategories);
 
-            const total = rawData.reduce(
-              (sum, item) => sum + (item.totalDuration || 0),
-              0
-            );
-            setTotalDuration(total);
-          }
-        } catch (err) {
-          console.error("Error fetching dashboard data:", err);
-          setError("Failed to load dashboard data");
-          setSummary([]);
-          setCategorySummary([]);
-          setTotalDuration(0);
-        } finally {
-          setLoading(false);
+          const total = rawData.reduce(
+            (sum, item) => sum + (item.totalDuration || 0),
+            0
+          );
+          setTotalDuration(total);
         }
-      };
+      } catch (err) {
+        console.error("Error fetching dashboard data:", err);
+        setError("Failed to load dashboard data");
+        setSummary([]);
+        setCategorySummary([]);
+        setTotalDuration(0);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-      fetchSummary();
-
-      return () => {
-        stopTracking();
-      };
-    },
-    [timeRange]
-  );
+    fetchSummary();
+    return () => {
+      stopTracking();
+    };
+  }, [timeRange]);
 
   if (loading) {
     return (
@@ -205,12 +196,9 @@ const Dashboard = () => {
         <div className="animate-pulse">
           <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded mb-4 w-1/3" />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {[1, 2, 3, 4].map(i =>
-              <div
-                key={i}
-                className="h-64 bg-gray-300 dark:bg-gray-700 rounded-lg"
-              />
-            )}
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} className="h-64 bg-gray-300 dark:bg-gray-700 rounded-lg" />
+            ))}
           </div>
         </div>
       </div>
@@ -222,24 +210,12 @@ const Dashboard = () => {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-white p-6">
         <div className="text-center py-12">
           <div className="w-16 h-16 mx-auto mb-4 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center">
-            <svg
-              className="w-8 h-8 text-red-600"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path
-                fillRule="evenodd"
-                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                clipRule="evenodd"
-              />
+            <svg className="w-8 h-8 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
             </svg>
           </div>
-          <h2 className="text-xl font-semibold mb-2">
-            Error Loading Dashboard
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400">
-            {error}
-          </p>
+          <h2 className="text-xl font-semibold mb-2">Error Loading Dashboard</h2>
+          <p className="text-gray-600 dark:text-gray-400">{error}</p>
           <button
             onClick={() => window.location.reload()}
             className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -261,7 +237,7 @@ const Dashboard = () => {
               Total Tracked Time: {formatDuration(totalDuration)}
             </p>
           </div>
-          <div className="mt-4 sm:mt-0">
+          <div className="mt-4 sm:mt-0 flex flex-col sm:flex-row items-start sm:items-center gap-3">
             <select
               value={timeRange}
               onChange={e => setTimeRange(e.target.value)}
@@ -271,23 +247,24 @@ const Dashboard = () => {
               <option value="week">This Week</option>
               <option value="month">This Month</option>
             </select>
+
+            <button
+              onClick={() => navigate("/reminders")}
+              className="bg-[#137261] hover:bg-[#064C47] text-[#e1f2f1] px-4 py-2 rounded-xl shadow-sm transition-colors duration-200"
+            >
+              Reminders 
+            </button>
           </div>
         </div>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* Category Chart */}
         <CategoryChart timeRange={timeRange} />
-
-        {/* Productivity Trends */}
         <ProductivityTrendChart timeRange={timeRange} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* Sunburst Hierarchy Chart */}
         <SunburstChart timeRange={timeRange} />
-
-        {/* Traditional Bar Chart for comparison */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
           <ActivityHeatmap timeRange={timeRange} />
         </div>
@@ -295,16 +272,9 @@ const Dashboard = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
         <div className="col-span-1 md:col-span-2 lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-md p-4">
-          <h2 className="text-md font-semibold mb-2">
-            Recent Activity Summary
-          </h2>
+          <h2 className="text-md font-semibold mb-2">Recent Activity Summary</h2>
           <div className="h-48 overflow-y-auto">
-            <AppList
-              data={summary}
-              showProductivity={true}
-              maxItems={8}
-              sortBy="duration"
-            />
+            <AppList data={summary} showProductivity={true} maxItems={8} sortBy="duration" />
           </div>
         </div>
       </div>

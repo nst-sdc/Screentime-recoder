@@ -299,7 +299,7 @@ const ActivityHeatmap = ({ timeRange = "week" }) => {
       .append("text")
       .attr("class", "day-label")
       .attr("x", -10)
-      .attr("y", (d, i) => i * cellHeight + cellHeight / 2)
+      .attr("y", (d, i) => i * cellHeight + cellHeight / 2) 
       .attr("dy", "0.35em")
       .attr("text-anchor", "end")
       .attr("class", "text-sm fill-gray-600 dark:fill-gray-400")
