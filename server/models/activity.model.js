@@ -12,8 +12,7 @@ const activitySchema = new mongoose.Schema(
     },
     sessionId: {
       type: String,
-      required: true,
-      index: true
+      required: true
     },
     url: {
       type: String,
@@ -22,6 +21,10 @@ const activitySchema = new mongoose.Schema(
     domain: {
       type: String,
       required: true
+    },
+    tabName: {
+      type: String,
+      required: false
     },
     title: {
       type: String
@@ -35,7 +38,7 @@ const activitySchema = new mongoose.Schema(
     },
     duration: {
       type: Number,
-      default: 0 // in milliseconds
+      default: 0
     },
     action: {
       type: String,
@@ -44,7 +47,37 @@ const activitySchema = new mongoose.Schema(
     },
     isActive: {
       type: Boolean,
-      default: false
+      default: true
+    },
+    idleTime: {
+      type: Number,
+      default: 0
+    },
+    category: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Category",
+      index: true
+    },
+    categoryName: {
+      type: String,
+      index: true
+    },
+    aiAnalysis: {
+      category: String,
+      confidence: Number,
+      reasoning: String,
+      processedAt: Date
+    },
+    tags: [
+      {
+        type: String
+      }
+    ],
+    productivityScore: {
+      type: Number,
+      min: 1,
+      max: 10,
+      default: 5
     }
   },
   {
@@ -52,6 +85,12 @@ const activitySchema = new mongoose.Schema(
   }
 );
 
-const Activity = mongoose.model("Activity", activitySchema);
+activitySchema.index({ userId: 1, domain: 1, startTime: -1 });
+activitySchema.index({ sessionId: 1 });
+activitySchema.index({ userId: 1, isActive: 1 });
+activitySchema.index({ userId: 1, category: 1, startTime: -1 });
+activitySchema.index({ userId: 1, categoryName: 1, startTime: -1 });
+activitySchema.index({ domain: 1, category: 1 });
 
+const Activity = mongoose.model("Activity", activitySchema);
 export default Activity;

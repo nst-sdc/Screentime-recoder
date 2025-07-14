@@ -1,5 +1,3 @@
-console.log("🔧 Popup script loaded");
-
 const statusDot = document.getElementById("statusDot");
 const statusText = document.getElementById("statusText");
 const statusInfo = document.getElementById("statusInfo");
@@ -10,7 +8,6 @@ const logoutBtn = document.getElementById("logoutBtn");
 const debugBtn = document.getElementById("debugBtn");
 const debugInfo = document.getElementById("debugInfo");
 
-// Check authentication status
 async function checkAuthStatus() {
   try {
     const response = await chrome.runtime.sendMessage({
@@ -74,21 +71,16 @@ async function checkAuthStatus() {
     loggedInSection.classList.add("hidden");
   }
 }
-
-// 🔐 Handle login
 loginBtn.addEventListener("click", () => {
   chrome.tabs.create({
     url: "http://localhost:5173/login",
   });
+  chrome.tabs.create({ url: "https://screentime-recoder.vercel.app/login" });
 });
 
-// 🔓 Handle logout and sync with webapp
 logoutBtn.addEventListener("click", async () => {
   try {
     await chrome.runtime.sendMessage({ type: "CLEAR_AUTH" });
-    console.log("🚪 User logged out from extension");
-
-    // Inject script to clear token in web app and redirect to /dashboard
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
       if (tabs[0]?.id) {
         chrome.scripting.executeScript({

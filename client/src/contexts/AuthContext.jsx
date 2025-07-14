@@ -19,6 +19,18 @@ export const AuthProvider = ({ children }) => {
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
+  // Helper function to communicate with extension
+  const sendTokenToExtension = (authToken) => {
+    try {
+      window.postMessage({
+        type: "EXTENSION_AUTH",
+        token: authToken
+      }, window.location.origin);
+    } catch (error) {
+      console.warn("Extension communication failed:", error);
+    }
+  };
+
   useEffect(() => {
     axios.defaults.baseURL = API_BASE_URL;
     if (token) {
@@ -27,6 +39,29 @@ export const AuthProvider = ({ children }) => {
       delete axios.defaults.headers.common['Authorization'];
     }
   }, [token]);
+
+  // Listen for extension availability and auth success
+  useEffect(() => {
+    const handleExtensionMessage = (event) => {
+      console.log("Received message:", event.data, "from origin:", event.origin);
+      
+      if (event.origin !== window.location.origin) return;
+      
+      if (event.data.type === "EXTENSION_AVAILABLE") {
+        const currentToken = localStorage.getItem('token');
+        if (currentToken) {
+          sendTokenToExtension(currentToken);
+        }
+      } else if (event.data.type === "EXTENSION_AUTH_SUCCESS") {
+        console.log("Extension authentication successful");
+      }
+    };
+
+    window.addEventListener("message", handleExtensionMessage);
+    return () => {
+      window.removeEventListener("message", handleExtensionMessage);
+    };
+  }, []);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -54,26 +89,7 @@ export const AuthProvider = ({ children }) => {
       setToken(urlToken);
       localStorage.setItem('token', urlToken);
 
-      try {
-        if (window.chrome && window.chrome.runtime) {
-          chrome.runtime.sendMessage(
-            import.meta.env.VITE_APP_EXTENSION_ID,
-            {
-              type: "AUTH_SUCCESS",
-              token: urlToken
-            },
-            (response) => {
-              if (chrome.runtime.lastError) {
-                console.log("Extension communication failed:", chrome.runtime.lastError.message);
-              } else {
-                console.log("Token sent to extension:", response);
-              }
-            }
-          );
-        }
-      } catch (error) {
-        console.log("Extension not available:", error);
-      }
+      sendTokenToExtension(urlToken);
 
       window.history.replaceState({}, document.title, window.location.pathname);
     }
@@ -83,43 +99,75 @@ export const AuthProvider = ({ children }) => {
     window.location.href = `${API_BASE_URL}/auth/google`;
   };
 
+  // Email + Password registration
+  const registerUser = async (userData) => {
+    try {
+      const res = await axios.post('/auth/register', userData);
+      
+      if (res.data.success) {
+        const jwt = res.data.token;
+        const userData = res.data.data;
+
+        localStorage.setItem('token', jwt);
+        setToken(jwt);
+        axios.defaults.headers.common['Authorization'] = `Bearer ${jwt}`;
+
+        setUser(userData);
+        setIsAuthenticated(true);
+        sendTokenToExtension(jwt);
+        
+        return res.data;
+      } else {
+        throw new Error(res.data.message || 'Registration failed');
+      }
+    } catch (err) {
+      console.error('Registration failed:', err);
+      
+      // Handle different error types
+      if (err.response?.data?.message) {
+        throw new Error(err.response.data.message);
+      } else if (err.message) {
+        throw new Error(err.message);
+      } else {
+        throw new Error('Registration failed. Please try again.');
+      }
+    }
+  };
+
   const loginWithCredentials = async (email, password) => {
     try {
       const res = await axios.post('/auth/login', { email, password });
-      const jwt = res.data.token;
+      
+      if (res.data.success) {
+        const jwt = res.data.token;
+        const userData = res.data.data;
 
-      localStorage.setItem('token', jwt);
-      setToken(jwt);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${jwt}`;
+        localStorage.setItem('token', jwt);
+        setToken(jwt);
+        axios.defaults.headers.common['Authorization'] = `Bearer ${jwt}`;
 
-      // ✅ Send token to extension
-      try {
-        if (window.chrome && window.chrome.runtime) {
-          chrome.runtime.sendMessage(
-            import.meta.env.VITE_APP_EXTENSION_ID,
-            {
-              type: "SET_TOKEN",
-              token: jwt,
-            },
-            (response) => {
-              if (chrome.runtime.lastError) {
-                console.error("Extension communication failed:", chrome.runtime.lastError.message);
-              } else {
-                console.log("Token sent to extension:", response);
-              }
-            }
-          );
-        }
-      } catch (err) {
-        console.error("Failed to send token to extension:", err);
+        // Send token to extension
+        sendTokenToExtension(jwt);
+
+        const userRes = await axios.get('/auth/verify');
+        setUser(userRes.data.data);
+        setIsAuthenticated(true);
+        
+        return res.data;
+      } else {
+        throw new Error(res.data.message || 'Login failed');
       }
-
-      const userRes = await axios.get('/auth/verify');
-      setUser(userRes.data.data);
-      setIsAuthenticated(true);
     } catch (err) {
       console.error('Login failed:', err);
-      throw err;
+      
+      // Handle different error types
+      if (err.response?.data?.message) {
+        throw new Error(err.response.data.message);
+      } else if (err.message) {
+        throw new Error(err.message);
+      } else {
+        throw new Error('Login failed. Please try again.');
+      }
     }
   };
 
@@ -165,6 +213,7 @@ export const AuthProvider = ({ children }) => {
     token,
     login,
     loginWithCredentials,
+    registerUser,
     logout,
     updateProfile,
     deleteAccount,

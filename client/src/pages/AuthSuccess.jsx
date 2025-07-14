@@ -13,7 +13,7 @@ const AuthSuccess = () => {
           // Send token to extension
           try {
             chrome.runtime.sendMessage(
-              process.env.REACT_APP_EXTENSION_ID || "your-extension-id",
+              import.meta.env.VITE_APP_EXTENSION_ID || "your-extension-id",
               {
                 type: "AUTH_SUCCESS",
                 token: token
@@ -30,13 +30,11 @@ const AuthSuccess = () => {
                     response
                   );
                 }
-                // Navigate to dashboard regardless
                 navigate("/dashboard");
               }
             );
           } catch (error) {
             console.log("Error communicating with extension:", error);
-            // Navigate to dashboard even if extension communication fails
             navigate("/dashboard");
           }
         } else {

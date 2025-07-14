@@ -4,7 +4,6 @@ dotenv.config();
 
 export const verifyToken = (req, res, next) => {
   const token = req.header("Authorization");
-
   if (!token) {
     return res.status(401).json({ message: "No token, authorization denied" });
   }
@@ -16,7 +15,7 @@ export const verifyToken = (req, res, next) => {
     req.user = decoded;
     next();
   } catch (error) {
-    console.error("Token verification error:", error);
+    console.error("Token verification error:", error.message);
     return res.status(401).json({ message: "Token is not valid" });
   }
 };
