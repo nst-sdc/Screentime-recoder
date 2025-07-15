@@ -4,6 +4,8 @@ import { useNavigate, Link } from "react-router-dom";
 import UndrawSVG from "../assets/undraw.svg";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+import CutLogo from "../assets/CutLogo.svg";
+
 
 const Login = () => {
   const { login: googleLogin, loginWithCredentials, isAuthenticated, isLoading } = useAuth();
@@ -57,11 +59,17 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-green-50 dark:from-[#121b22] dark:to-[#121b22] px-6 py-24 relative">
-      <div className="absolute top-6 left-8">
-        <h1 className="text-xl font-semibold text-green-700 dark:text-whatsDark-text">
-          ScreenRecorder <span className="text-sm text-gray-500">(logo/title yet to be made)</span>
-        </h1>
-      </div>
+<div className="absolute top-6 left-6">
+  <img
+    src={CutLogo}
+    alt="Logo"
+    className="h-32 w-32 max-w-[128px] object-contain"
+  />
+  <h1 className="text-xl font-semibold text-green-700 dark:text-whatsDark-text">
+    
+  </h1>
+</div>
+
 
       <div className="w-full max-w-7xl grid grid-cols-1 md:grid-cols-2 gap-14 bg-white dark:bg-[#1f2c33] shadow-2xl rounded-2xl overflow-hidden border border-green-200">
         {/* Left: Form Section */}
