@@ -64,6 +64,7 @@ const Login = () => {
       </div>
 
       <div className="w-full max-w-7xl grid grid-cols-1 md:grid-cols-2 gap-14 bg-white dark:bg-[#1f2c33] shadow-2xl rounded-2xl overflow-hidden border border-green-200">
+        {/* Left: Form Section */}
         <div className="flex flex-col justify-center px-8 sm:px-14 py-12">
           <h2 className="text-4xl font-bold text-green-700 dark:text-whatsDark-text mb-4">Welcome Back</h2>
           <p className="text-gray-600 dark:text-whatsDark-text text-lg mb-8">Login to manage your time and tasks efficiently.</p>
@@ -97,7 +98,7 @@ const Login = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-0 top-1/2 -translate-y-1/2 text-gray-600 dark:text-white bg-transparent outline-none focus:outline-none focus:ring-0 hover:bg-transparent active:bg-transparent"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 dark:text-white bg-transparent outline-none focus:outline-none focus:ring-0 hover:bg-transparent active:bg-transparent"
               >
                 <FontAwesomeIcon icon={showPassword ? faEye : faEyeSlash} />
               </button>
@@ -152,6 +153,7 @@ const Login = () => {
           </div>
         </div>
 
+        {/* Right Side */}
         <div className="flex flex-col items-center justify-center bg-green-100 dark:bg-[#1f2c33] p-8 sm:p-12 space-y-6">
           <div className="w-full flex justify-center">
             <img src={UndrawSVG} alt="Undraw Illustration" className="w-full max-w-[220px] object-contain rounded-lg shadow-lg" />
