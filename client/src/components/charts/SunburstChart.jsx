@@ -237,51 +237,6 @@ const SunburstChart = ({ timeRange = 'week' }) => {
         .text(d.data.name);
     }
 
-    // Add legend for productivity scale
-    const legendG = svgElement.append("g")
-      .attr("transform", `translate(20, ${height - 60})`);
-
-    const legendScale = d3.scaleLinear()
-      .domain([0, 10])
-      .range([0, 100]);
-
-    const legendAxis = d3.axisBottom(legendScale)
-      .ticks(5)
-      .tickSize(10);
-
-    // Create gradient for legend
-    const legendGradient = svgElement.append("defs")
-      .append("linearGradient")
-      .attr("id", "legend-gradient")
-      .attr("x1", "0%")
-      .attr("x2", "100%")
-      .attr("y1", "0%")
-      .attr("y2", "0%");
-
-    for (let i = 0; i <= 10; i++) {
-      legendGradient.append("stop")
-        .attr("offset", `${i * 10}%`)
-        .attr("stop-color", color(i));
-    }
-
-    legendG.append("rect")
-      .attr("width", 100)
-      .attr("height", 10)
-      .style("fill", "url(#legend-gradient)");
-
-    legendG.append("g")
-      .attr("transform", "translate(0, 10)")
-      .call(legendAxis)
-      .style("font-size", "10px");
-
-    legendG.append("text")
-      .attr("x", 50)
-      .attr("y", -5)
-      .style("text-anchor", "middle")
-      .style("font-size", "11px")
-      .style("fill", "#6B7280")
-      .text("Productivity Score");
-
     // Cleanup tooltip on unmount
     return () => {
       d3.select("body").selectAll(".fixed.pointer-events-none").remove();
@@ -323,23 +278,37 @@ const SunburstChart = ({ timeRange = 'week' }) => {
       ) : (
         <div className="flex flex-col items-center">
           <svg ref={svgRef} className="drop-shadow-sm"></svg>
-          <div className="mt-4 text-sm text-gray-600 dark:text-gray-400 text-center space-y-1">
-            <p className="font-medium">Interactive Features:</p>
-            <div className="flex flex-col sm:flex-row gap-2 justify-center text-xs">
-              <span className="flex items-center gap-1">
-                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clipRule="evenodd" />
-                </svg>
-                Click to zoom in
-              </span>
-              <span className="flex items-center gap-1">
-                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
-                </svg>
-                Hover for details
-              </span>
+          <div className="mt-4 flex flex-col md:flex-row justify-between items-center gap-4 w-full px-4 text-sm text-gray-600 dark:text-gray-400">
+            {/* Productivity Score Legend */}
+            <div className="flex flex-col">
+              <span className="text-sm mb-1 text-gray-400 dark:text-gray-300">Productivity Score</span>
+              <div className="flex flex-col">
+                <div className="h-4 w-48 bg-gradient-to-r from-red-500 via-yellow-300 to-green-500 rounded-sm mb-1"></div>
+                <div className="flex justify-between text-[10px] text-gray-500 dark:text-gray-400 w-48">
+                  <span>0</span><span>2</span><span>4</span><span>6</span><span>8</span><span>10</span>
+                </div>
+              </div>
             </div>
-            <p className="text-xs">Inner ring: Categories • Outer ring: Top domains</p>
+
+            {/* Interactive Features */}
+            <div className="text-right">
+              <p className="font-medium">Interactive Features:</p>
+              <div className="flex flex-col sm:flex-row gap-2 justify-end text-xs">
+                <span className="flex items-center gap-1">
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clipRule="evenodd" />
+                  </svg>
+                  Click to zoom in
+                </span>
+                <span className="flex items-center gap-1">
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                  </svg>
+                  Hover for details
+                </span>
+              </div>
+              <p className="text-xs">Inner ring: Categories • Outer ring: Top domains</p>
+            </div>
           </div>
         </div>
       )}
