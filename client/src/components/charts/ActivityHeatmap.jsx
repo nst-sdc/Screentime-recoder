@@ -223,17 +223,15 @@ const ActivityHeatmap = ({ timeRange = "week" }) => {
       .append("g")
       .attr("transform", `translate(${margin.left},${margin.top})`);
 
-    const maxValue = d3.max(heatmapData, d => d.value) || 60;
+    const maxValue = d3.max(heatmapData, d => +d.value || 0) || 100;
+    console.log("heatmapData sample:", heatmapData.slice(0, 10));
+
+    const isDark = document.documentElement.classList.contains("dark");
 
     // Color scheme that matches the image: gray → light blue → green → yellow → orange → red
-    const colorSteps = [
-      "#f5f5f5", // Very low (gray)
-      "#dbeafe", // Low (light blue)
-      "#86efac", // Medium-low (green)
-      "#fde047", // Medium (yellow)
-      "#fb923c", // Medium-high (orange)
-      "#ef4444" // High (red)
-    ];
+    const colorSteps = isDark
+      ? ["#1f2937", "#3b82f6", "#22c55e", "#fde047", "#fb923c", "#ef4444"]
+      : ["#f5f5f5", "#dbeafe", "#86efac", "#fde047", "#fb923c", "#ef4444"];
 
     const stepColorScale = d3
       .scaleQuantize()
@@ -251,7 +249,7 @@ const ActivityHeatmap = ({ timeRange = "week" }) => {
       .attr("y", d => d.day * cellHeight)
       .attr("width", cellWidth - 1)
       .attr("height", cellHeight - 1)
-      .attr("fill", d => (d.value === 0 ? "#f5f5f5" : stepColorScale(d.value)))
+      .attr("fill", d => stepColorScale(Number(d.value)))
       .attr("stroke", "#ffffff")
       .attr("stroke-width", 1)
       .attr("rx", 4)
@@ -334,57 +332,61 @@ const ActivityHeatmap = ({ timeRange = "week" }) => {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg font-semibold text-gray-900">
-          Activity Heatmap
-        </h3>
-        <div className="flex items-center space-x-2 text-sm text-gray-500">
-          <span>Low</span>
-          <div className="flex space-x-1">
-            <div className="w-3 h-3 bg-gray-200 rounded" />
-            <div className="w-3 h-3 bg-blue-100 rounded" />
-            <div className="w-3 h-3 bg-green-300 rounded" />
-            <div className="w-3 h-3 bg-yellow-300 rounded" />
-            <div className="w-3 h-3 bg-orange-400 rounded" />
-            <div className="w-3 h-3 bg-red-500 rounded" />
+    <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm p-6">
+      <div className="w-full overflow-x-auto">
+        <div className="min-w-[360px] sm:min-w-[500px] md:min-w-full">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Activity Heatmap
+            </h3>
+            <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-300">
+              <span>Low</span>
+              <div className="flex space-x-1">
+                <div className="w-3 h-3 bg-gray-200 rounded" />
+                <div className="w-3 h-3 bg-blue-100 rounded" />
+                <div className="w-3 h-3 bg-green-300 rounded" />
+                <div className="w-3 h-3 bg-yellow-300 rounded" />
+                <div className="w-3 h-3 bg-orange-400 rounded" />
+                <div className="w-3 h-3 bg-red-500 rounded" />
+              </div>
+              <span>High</span>
+            </div>
           </div>
-          <span>High</span>
-        </div>
-      </div>
 
-      <div className="mb-6">
-        <svg ref={svgRef} />
-      </div>
-
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-        <div className="bg-gray-50 rounded-lg p-4">
-          <div className="text-sm text-gray-600 mb-1">Peak Hours</div>
-          <div className="text-lg font-semibold text-gray-900">
-            {insights.peakHours}
+          <div className="mb-6">
+            <svg ref={svgRef} />
           </div>
-        </div>
 
-        <div className="bg-gray-50 rounded-lg p-4">
-          <div className="text-sm text-gray-600 mb-1">Most Active Day</div>
-          <div className="text-lg font-semibold text-gray-900">
-            {insights.mostActiveDay}
-          </div>
-        </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+              <div className="text-sm text-gray-600 dark:text-gray-300 mb-1">Peak Hours</div>
+              <div className="text-lg font-semibold text-gray-900 dark:text-white">
+                {insights.peakHours}
+              </div>
+            </div>
 
-        <div className="bg-gray-50 rounded-lg p-4">
-          <div className="text-sm text-gray-600 mb-1">Consistency</div>
-          <div className="text-lg font-semibold text-blue-600">
-            {insights.consistency}% consistency
-          </div>
-        </div>
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+              <div className="text-sm text-gray-600 dark:text-gray-300 mb-1">Most Active Day</div>
+              <div className="text-lg font-semibold text-gray-900 dark:text-white">
+                {insights.mostActiveDay}
+              </div>
+            </div>
 
-        <div className="bg-gray-50 rounded-lg p-4">
-          <div className="text-sm text-gray-600 mb-1">Pattern</div>
-          <div className="text-lg font-semibold text-green-600">
-            {insights.workPattern
-              ? "Work pattern detected"
-              : "Flexible schedule"}
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+              <div className="text-sm text-gray-600 dark:text-gray-300 mb-1">Consistency</div>
+              <div className="text-lg font-semibold text-blue-600">
+                {insights.consistency}% consistency
+              </div>
+            </div>
+
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+              <div className="text-sm text-gray-600 dark:text-gray-300 mb-1">Pattern</div>
+              <div className="text-lg font-semibold text-green-600">
+                {insights.workPattern
+                  ? "Work pattern detected"
+                  : "Flexible schedule"}
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -6,16 +6,28 @@ const SunburstChart = ({ timeRange = 'week' }) => {
   const svgRef = useRef();
   const [hierarchyData, setHierarchyData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isDark, setIsDark] = useState(document.documentElement.classList.contains('dark'));
 
   useEffect(() => {
     fetchHierarchyData();
   }, [timeRange]);
 
   useEffect(() => {
+    const observer = new MutationObserver(() => {
+      const darkMode = document.documentElement.classList.contains('dark');
+      setIsDark(darkMode);
+    });
+
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
     if (hierarchyData) {
       drawSunburst();
     }
-  }, [hierarchyData]);
+  }, [hierarchyData, isDark]);
 
   const fetchHierarchyData = async () => {
     try {
@@ -205,13 +217,13 @@ const SunburstChart = ({ timeRange = 'week' }) => {
       .attr("dy", "-0.5em")
       .style("font-size", "18px")
       .style("font-weight", "bold")
-      .style("fill", "#374151")
+      .style("fill", isDark ? "#F9FAFB" : "#374151")
       .text("Activities");
 
     centerText.append("text")
       .attr("dy", "1em")
       .style("font-size", "12px")
-      .style("fill", "#6B7280")
+      .style("fill", isDark ? "#D1D5DB" : "#6B7280")
       .text(`${timeRange.charAt(0).toUpperCase() + timeRange.slice(1)} View`);
 
     // Zoom functionality
