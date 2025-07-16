@@ -4,7 +4,7 @@ import cutLogo from '../assets/CutLogo.svg';
 
 const Footer = () => {
   return (
-    <footer className="bg-gradient-to-r from-green-100 via-green-200 to-green-100 dark:from-[#0f1b22] dark:via-[#121b22] dark:to-[#0f1b22] text-gray-800 dark:text-gray-300 pt-16 px-6 rounded-t-lg backdrop-blur-md shadow-inner border-t border-green-300 dark:border-green-700">
+    <footer className="bg-gradient-to-r from-green-100 via-green-200 to-green-100 dark:from-[#0f1b22] dark:via-[#121b22] dark:to-[#0f1b22] text-gray-800 dark:text-gray-300 pt-16 px-6 backdrop-blur-md shadow-inner border-t border-green-300 dark:border-green-700">
       <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 items-start pb-12 border-b border-green-300 dark:border-green-700">
 
        

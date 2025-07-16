@@ -138,9 +138,8 @@ const LandingPage = () => {
         </Link>
       </div>
 
-      <footer className="mt-16 text-center text-sm text-gray-500 dark:text-gray-400">
-        © 2025 Screentime Recorder.
-      </footer>
+
+      
     </div>
   );
 };
