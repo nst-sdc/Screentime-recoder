@@ -158,7 +158,7 @@ const Reminders = () => {
       return (
         <div className="space-y-3">
           <label className="block text-sm font-semibold text-emerald-700 dark:text-emerald-300">
-            🔄 Repeat (after main alert)
+            Repeat (after main alert)
           </label>
           <select
             name="repeatOption"
@@ -261,10 +261,10 @@ const Reminders = () => {
 
   const getTypeIcon = (type) => {
     switch (type) {
-      case "alert": return "🔔";
-      case "block": return "🚫";
-      case "custom": return "⚡";
-      default: return "📝";
+      case "alert": return "ALERT";
+      case "block": return "BLOCK";
+      case "custom": return "CUSTOM";
+      default: return "NOTE";
     }
   };
 
@@ -420,7 +420,7 @@ const Reminders = () => {
               <div className="space-y-4 max-h-96 overflow-y-auto">
                 {reminders.length === 0 ? (
                   <div className="text-center py-12">
-                    <div className="text-6xl mb-4">🎯</div>
+                    <div className="text-6xl mb-4">TARGET</div>
                     <p className="text-gray-500 dark:text-gray-400 text-lg">No reminders yet</p>
                     <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">
                       Create your first reminder to get started!

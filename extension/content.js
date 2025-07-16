@@ -22,7 +22,7 @@ window.addEventListener("message", event => {
       },
       response => {
         if (response && response.success) {
-          console.log("✅ Token stored successfully in extension");
+          console.log("Token stored successfully in extension");
 
           window.postMessage(
             {

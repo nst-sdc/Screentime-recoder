@@ -1,6 +1,3 @@
-// Extension Configuration
-// Update these URLs to match your deployed applications
-
 const EXTENSION_CONFIG = {
   // Frontend URLs (Vercel)
   FRONTEND_URLS: [

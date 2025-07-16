@@ -30,13 +30,11 @@ const AuthSuccess = () => {
                     response
                   );
                 }
-                // Navigate to dashboard regardless
                 navigate("/dashboard");
               }
             );
           } catch (error) {
             console.log("Error communicating with extension:", error);
-            // Navigate to dashboard even if extension communication fails
             navigate("/dashboard");
           }
         } else {
