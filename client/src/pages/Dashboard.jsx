@@ -192,7 +192,7 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-white p-6">
+      <div className="min-h-screen bg-[#dcfce7] dark:bg-gray-900 text-gray-800 dark:text-white p-6">
         <div className="animate-pulse">
           <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded mb-4 w-1/3" />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -207,7 +207,7 @@ const Dashboard = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-white p-6">
+      <div className="min-h-screen bg-[#dcfce7] dark:bg-gray-900 text-gray-800 dark:text-white p-6">
         <div className="text-center py-12">
           <div className="w-16 h-16 mx-auto mb-4 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center">
             <svg className="w-8 h-8 text-red-600" fill="currentColor" viewBox="0 0 20 20">
@@ -228,7 +228,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen h-full bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-white p-6">
+    <div className="min-h-screen h-full bg-[#dcfce7] dark:bg-gray-900 text-gray-800 dark:text-white p-6">
       <header className="mb-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
           <div>

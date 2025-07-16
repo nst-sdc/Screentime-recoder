@@ -6,6 +6,7 @@ const ProductivityTrendChart = ({ timeRange = "week" }) => {
   const svgRef = useRef();
   const [trendData, setTrendData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isDark, setIsDark] = useState(document.documentElement.classList.contains('dark'));
   const [error, setError] = useState(null);
 
   useEffect(
@@ -15,13 +16,22 @@ const ProductivityTrendChart = ({ timeRange = "week" }) => {
     [timeRange]
   );
 
+  useEffect(() => {
+       const observer = new MutationObserver(() => {
+         const darkMode = document.documentElement.classList.contains('dark');
+         setIsDark(darkMode);
+       });
+       observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+       return () => observer.disconnect();
+  }, []);
+
   useEffect(
     () => {
       if (trendData.length > 0) {
         drawTrendChart();
       }
     },
-    [trendData]
+    [trendData, isDark]
   );
 
   // Cleanup tooltips on unmount
@@ -184,7 +194,7 @@ const ProductivityTrendChart = ({ timeRange = "week" }) => {
       .attr("dy", "1em")
       .style("text-anchor", "middle")
       .style("font-size", "12px")
-      .style("fill", "#6B7280")
+      .style("fill", isDark ? "#D1D5DB" : "#6B7280")
       .text("Productivity Score");
 
     g
@@ -195,7 +205,7 @@ const ProductivityTrendChart = ({ timeRange = "week" }) => {
       .attr("dy", "1em")
       .style("text-anchor", "middle")
       .style("font-size", "12px")
-      .style("fill", "#6B7280")
+      .style("fill", isDark ? "#D1D5DB" : "#6B7280")
       .text("Duration (min)");
 
     // Line generators
@@ -326,7 +336,7 @@ const ProductivityTrendChart = ({ timeRange = "week" }) => {
       .attr("y", 0)
       .attr("dy", "0.35em")
       .style("font-size", "11px")
-      .style("fill", "#374151")
+      .style("fill", isDark ? "#F9FAFB" : "#374151")
       .text("Productivity");
 
     legend
@@ -345,7 +355,7 @@ const ProductivityTrendChart = ({ timeRange = "week" }) => {
       .attr("y", 15)
       .attr("dy", "0.35em")
       .style("font-size", "11px")
-      .style("fill", "#374151")
+      .style("fill", isDark ? "#F9FAFB" : "#374151")
       .text("Duration");
   };
 
