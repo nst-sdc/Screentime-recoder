@@ -42,30 +42,30 @@ const Navbar = () => {
   return (
     <nav
       style={navGradientStyle}
-      className="flex flex-wrap items-center justify-between px-8 py-5 shadow-lg text-white dark:text-gray-300 pt-4 relative z-10 backdrop-blur-lg shadow-inner border-b-2 border-green-400 dark:border-green-700"
+      className="flex flex-wrap items-center justify-between px-8 py-5 text-white dark:text-gray-300 pt-4 relative z-10 backdrop-blur-lg shadow-inner border-b-2 border-green-400 dark:border-green-700"
     >
       <ul className="flex flex-wrap gap-4 list-none items-center relative z-20">
-        <li className="flex items-center space-x-1">
-          <div className="w-6 h-6 flex items-center justify-center text-white dark:text-green-400">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-              stroke="none"
-            >
-              <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
-            </svg>
-          </div>
-          <Link
-            to="/"
-            className="relative px-3 py-2 rounded-full text-white dark:text-green-400 text-base font-semibold tracking-wide hover:bg-green-200/50 dark:hover:bg-green-900 transition-colors duration-300 shadow-sm"
-          >
-            Home
-          </Link>
-        </li>
         {!isAuthenticated && (
           <>
+            <li className="flex items-center space-x-1">
+              <div className="w-6 h-6 flex items-center justify-center text-white dark:text-green-400">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                  stroke="none"
+                >
+                  <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+                </svg>
+              </div>
+              <Link
+                to="/"
+                className="relative px-3 py-2 rounded-full text-white dark:text-green-400 text-base font-semibold tracking-wide hover:bg-green-200/50 dark:hover:bg-green-900 transition-colors duration-300 shadow-sm"
+              >
+                Home
+              </Link>
+            </li>
             <li>
               <Link
                 to="/login"

@@ -212,7 +212,7 @@ const Registration = () => {
           <img
             src={UndrawSVG}
             alt="Undraw Illustration"
-            className="w-full max-w-[220px] object-contain rounded-lg shadow-lg"
+            className="w-full max-w-[220px] object-contain rounded-lg"
           />
         </div>
         <h2 className="text-2xl font-semibold text-green-800 dark:text-whatsDark-text text-center">

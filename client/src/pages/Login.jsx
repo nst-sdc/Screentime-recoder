@@ -164,7 +164,7 @@ const Login = () => {
         {/* Right Side */}
         <div className="flex flex-col items-center justify-center bg-green-100 dark:bg-[#1f2c33] p-8 sm:p-12 space-y-6">
           <div className="w-full flex justify-center">
-            <img src={UndrawSVG} alt="Undraw Illustration" className="w-full max-w-[220px] object-contain rounded-lg shadow-lg" />
+            <img src={UndrawSVG} alt="Undraw Illustration" className="w-full max-w-[220px] object-contain rounded-lg" />
           </div>
           <div className="text-center">
             <h2 className="text-2xl font-semibold text-green-800 dark:text-whatsDark-text">Secure Login</h2>

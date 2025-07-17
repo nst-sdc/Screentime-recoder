@@ -19,60 +19,64 @@ The **Screen Time Recorder** helps users track and improve their actual study ti
 
 ### 🏗️ Features
 
-- **🔐 Secure Dashboard** 
+- **🔐 Secure Dashboard**
+
 * Authenticated access using Google OAuth.
 * Personalized view for each user’s activity.
 
 - **🧾 Productivity Metrics**
-Productivity score (0–10) with average calculation.
-Productive vs unproductive time tracked for the selected week.
+  Productivity score (0–10) with average calculation.
+  Productive vs unproductive time tracked for the selected week.
 
 - **📊 Visual Reports**
-Pie Chart & Bar Chart to break down activity by category.
-Productivity Trends Line Graph showing duration vs productivity over time.
+  Pie Chart & Bar Chart to break down activity by category.
+  Productivity Trends Line Graph showing duration vs productivity over time.
 
 - **🗂️ Activity Hierarchy**
-Interactive Sunburst Chart visualizing:
-Inner ring: Activity categories
-Outer ring: Specific domains
+  Interactive Sunburst Chart visualizing:
+  Inner ring: Activity categories
+  Outer ring: Specific domains
 
 - **📆 Activity Heatmap**
-Hour-by-hour usage mapping throughout the week.
-Highlights peak hours and low-activity slots.
+  Hour-by-hour usage mapping throughout the week.
+  Highlights peak hours and low-activity slots.
 
 - **🧠 Behavioral Insights**
-Peak active hours and most productive days.
-Checks Consistency score 
-Detected usage pattern (e.g., "Flexible Schedule").
+  Peak active hours and most productive days.
+  Checks Consistency score
+  Detected usage pattern (e.g., "Flexible Schedule").
 
 - **🔍 Recent Activity Summary**
-Tabular view of recent activities.
-Filters by category, productivity level, and duration.
-Shows domain name, session count, and timestamps.
+  Tabular view of recent activities.
+  Filters by category, productivity level, and duration.
+  Shows domain name, session count, and timestamps.
 
 - **🌐 Browser Extension Integration**
-Captures tab activity automatically from extension.
-Sends data to backend every 30 seconds.
-Accurate tracking with start/end time of each session.
+  Captures tab activity automatically from extension.
+  Sends data to backend every 30 seconds.
+  Accurate tracking with start/end time of each session.
 
 ---
 
 ### 🔧 Tech Stack
 
-| Layer          | Tech                                                             |
-| -------------- | ---------------------------------------------------------------- |
-| Frontend       | React.js                                                         |
-| Backend        | Node.js + Express                                                |
-| Database       | MongoDB                                                          |
-| Authentication | JWT                                                              |
-| Deployment     | Netlify (frontend), Render (backend)                             |
+| Layer          | Tech                                |
+| -------------- | ----------------------------------- |
+| Frontend       | React.js + Vite                     |
+| Backend        | Node.js + Express                   |
+| Database       | MongoDB                             |
+| Authentication | JWT + Google OAuth                  |
+| Visualization  | D3.js                               |
+| Extension      | Chrome Extension (Manifest V3)      |
+| Deployment     | Vercel (frontend), Render (backend) |
 
 ---
 
 ### 🔐 Authentication
 
-- JSON Web Tokens (JWT) 
+- JSON Web Tokens (JWT) + Google OAuth
 - User sessions for tracking and saving focus data
+- Secure password hashing and session management
 - Role-based support planned for future (students/admins)
 
 ---
@@ -81,8 +85,12 @@ Accurate tracking with start/end time of each session.
 
 ```shell
 screentime-recorder/
-├── client/ # React Frontend
-├── server/ # Node.js Backend
-├── README.md
-└── LICENSE
+├── client/                     # React Frontend (Vite)
+├── server/                     # Node.js Backend (Express)
+├── extension/                  # Chrome Extension (Manifest V3)
+├── .env.example                # Environment variables template
+├── README.md                   # Project documentation
+├── package.json                # Root package configuration
+└── LICENSE                     # License information
 ```
+---

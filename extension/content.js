@@ -1,5 +1,3 @@
-console.log("Content script injected into webpage");
-
 window.addEventListener("message", event => {
   const allowedOrigins = [
     "http://localhost:5173",
@@ -13,8 +11,6 @@ window.addEventListener("message", event => {
   }
 
   if (event.data.type === "EXTENSION_AUTH") {
-    console.log("🔐 Received auth token from web app");
-
     chrome.runtime.sendMessage(
       {
         type: "SET_TOKEN",
@@ -22,8 +18,6 @@ window.addEventListener("message", event => {
       },
       response => {
         if (response && response.success) {
-          console.log("Token stored successfully in extension");
-
           window.postMessage(
             {
               type: "EXTENSION_AUTH_SUCCESS",

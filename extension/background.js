@@ -1,4 +1,22 @@
-console.log("Enhanced Background script is running...");
+importScripts('config.js');
+
+// Helper functions
+function getAllowedOrigins() {
+  return EXTENSION_CONFIG.FRONTEND_URLS || [];
+}
+
+async function getBackendUrl() {
+  return `${EXTENSION_CONFIG.API_URL}/api/activity`;
+}
+
+function isValidBackendUrl(url) {
+  try {
+    const urlObj = new URL(url);
+    return urlObj.protocol === 'http:' || urlObj.protocol === 'https:';
+  } catch (error) {
+    return false;
+  }
+}
 
 chrome.runtime.onInstalled.addListener(() => {
   console.log("Extension installed.");
@@ -80,8 +98,14 @@ async function sendToBackend(activity) {
       }
     }
 
-    // Backend URL
-    const backendUrl = "http://localhost:3000/api/activity/log";
+    // Get secure backend URL
+    const backendUrl = await getBackendUrl();
+    
+    // Validate backend URL security
+    if (!isValidBackendUrl(backendUrl)) {
+      console.error("Backend URL failed security validation:", backendUrl);
+      return { reason: "invalid_backend_url" };
+    }
     
     const response = await fetch(backendUrl, {
       method: "POST",
@@ -271,14 +295,21 @@ function updateAuthStatus(result) {
 async function checkForWebAppToken() {
   try {
     const tabs = await chrome.tabs.query({});
-    const webAppTab = tabs.find(tab =>
-      tab.url && (
-        tab.url.includes('localhost:5173') ||
-        tab.url.includes('localhost:5174') ||
-        tab.url.includes('localhost:3000') ||
-        tab.url.includes('screentime-recoder.vercel.app')
-      )
-    );
+    const webAppTab = tabs.find(tab => {
+      if (!tab.url) return false;
+      
+      try {
+        const tabUrl = new URL(tab.url);
+        return EXTENSION_CONFIG.FRONTEND_URLS.some(allowedUrl => {
+          const allowedUrlObj = new URL(allowedUrl);
+          return tabUrl.hostname === allowedUrlObj.hostname && 
+                 (tabUrl.port === allowedUrlObj.port || 
+                  (!tabUrl.port && !allowedUrlObj.port));
+        });
+      } catch (error) {
+        return false;
+      }
+    });
 
     if (webAppTab) {
       try {
@@ -304,7 +335,7 @@ async function checkForWebAppToken() {
       }
     }
   } catch (error) {
-    console.error(" Error checking for web app token:", error);
+    console.error("Error checking for web app token:", error);
   }
 }
 
@@ -357,11 +388,11 @@ chrome.windows.onFocusChanged.addListener(async (windowId) => {
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log(" Received message:", message);
+  console.log("Background script received message:", message);
 
   switch (message.type) {
     case 'SET_TOKEN':
-      console.log("🔐 Storing auth token");
+      console.log("Storing auth token");
       chrome.storage.local.set({
         token: message.token,
         authStatus: 'authenticated'
@@ -373,6 +404,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     case 'GET_AUTH_STATUS':
       chrome.storage.local.get(['token', 'authStatus'], (result) => {
+        console.log("Auth status requested:", result);
         sendResponse({
           isAuthenticated: !!result.token,
           status: result.authStatus || 'unknown'
@@ -381,9 +413,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       return true;
 
     case 'CLEAR_AUTH':
+      console.log("Clearing auth");
       endAllActiveSessions().then(() => {
         chrome.storage.local.remove(['token', 'authStatus'], () => {
-          console.log(" Authentication cleared");
+          console.log("Authentication cleared");
           sendResponse({ success: true });
         });
       });
@@ -415,6 +448,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       sendResponse({ activeTabs: currentTabs });
       return true;
 
+    case 'CLOSE_TAB':
+      if (sender.tab?.id) {
+        chrome.tabs.remove(sender.tab.id);
+        sendResponse({ success: true });
+      } else {
+        sendResponse({ success: false, error: 'No tab ID' });
+      }
+      return true;
+
     default:
       console.warn("Unknown message type:", message.type);
       sendResponse({ success: false, error: "Unknown message type" });
@@ -422,15 +464,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => {
-  const allowedOrigins = [
-    'http://localhost:5173',
-    'http://localhost:3000', 
-    'https://screentime-recoder.vercel.app',
-    'https://screentime-recoder.onrender.com'
-  ];
+  const allowedOrigins = getAllowedOrigins();
 
   if (!allowedOrigins.includes(sender.origin)) {
-    console.warn(" Rejected message from unauthorized origin:", sender.origin);
+    console.warn("Rejected message from unauthorized origin:", sender.origin);
     return;
   }
 

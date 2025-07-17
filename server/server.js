@@ -10,7 +10,7 @@ import authRouter from "./routes/auth.route.js";
 import trackingRouter from "./routes/tracking.route.js";
 import activityRouter from "./routes/activity.route.js";
 import domainRouter from "./routes/domain.route.js";
-import reminderRouter from "./routes/reminder.route.js";
+import healthRouter from "./routes/health.route.js";
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -31,10 +31,19 @@ const initializeApp = async () => {
 
 initializeApp();
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "https://screentime-recoder.vercel.app",
+  process.env.CLIENT_URL
+].filter(Boolean);
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
-    credentials: true
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"]
   })
 );
 app.use(express.json());
@@ -57,7 +66,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/tracking", trackingRouter);
 app.use("/api/activity", activityRouter);
 app.use("/api/domain", domainRouter);
-app.use("/api/reminders", reminderRouter);
+app.use("/api", healthRouter);
 
 app.get("/api/health", (req, res) => {
   res.status(200).json({ message: "Server is running!" });
