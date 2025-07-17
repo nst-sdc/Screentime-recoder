@@ -1,5 +1,26 @@
 console.log("Enhanced Background script is running...");
 
+// Import configuration
+importScripts('config.js');
+
+// Helper functions
+function getAllowedOrigins() {
+  return EXTENSION_CONFIG.FRONTEND_URLS || [];
+}
+
+async function getBackendUrl() {
+  return `${EXTENSION_CONFIG.API_URL}/api/activity`;
+}
+
+function isValidBackendUrl(url) {
+  try {
+    const urlObj = new URL(url);
+    return urlObj.protocol === 'http:' || urlObj.protocol === 'https:';
+  } catch (error) {
+    return false;
+  }
+}
+
 chrome.runtime.onInstalled.addListener(() => {
   console.log("Extension installed.");
   initializeTracking();
@@ -80,8 +101,14 @@ async function sendToBackend(activity) {
       }
     }
 
-    // Backend URL
-    const backendUrl = "http://localhost:3000/api/activity/log";
+    // Get secure backend URL
+    const backendUrl = await getBackendUrl();
+    
+    // Validate backend URL security
+    if (!isValidBackendUrl(backendUrl)) {
+      console.error("Backend URL failed security validation:", backendUrl);
+      return { reason: "invalid_backend_url" };
+    }
     
     const response = await fetch(backendUrl, {
       method: "POST",
@@ -271,14 +298,21 @@ function updateAuthStatus(result) {
 async function checkForWebAppToken() {
   try {
     const tabs = await chrome.tabs.query({});
-    const webAppTab = tabs.find(tab =>
-      tab.url && (
-        tab.url.includes('localhost:5173') ||
-        tab.url.includes('localhost:5174') ||
-        tab.url.includes('localhost:3000') ||
-        tab.url.includes('screentime-recoder.vercel.app')
-      )
-    );
+    const webAppTab = tabs.find(tab => {
+      if (!tab.url) return false;
+      
+      try {
+        const tabUrl = new URL(tab.url);
+        return EXTENSION_CONFIG.FRONTEND_URLS.some(allowedUrl => {
+          const allowedUrlObj = new URL(allowedUrl);
+          return tabUrl.hostname === allowedUrlObj.hostname && 
+                 (tabUrl.port === allowedUrlObj.port || 
+                  (!tabUrl.port && !allowedUrlObj.port));
+        });
+      } catch (error) {
+        return false;
+      }
+    });
 
     if (webAppTab) {
       try {
@@ -304,7 +338,7 @@ async function checkForWebAppToken() {
       }
     }
   } catch (error) {
-    console.error(" Error checking for web app token:", error);
+    console.error("Error checking for web app token:", error);
   }
 }
 
@@ -325,6 +359,24 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
 
     if (tab.active) {
       await handleTabActivated(tabId, changeInfo.url, tab.title);
+    }
+
+    // Check if the new URL should be blocked
+    try {
+      const domain = new URL(changeInfo.url).hostname;
+      const isBlocked = await checkDomainBlocked(domain);
+      
+      if (isBlocked) {
+        setTimeout(() => {
+          chrome.tabs.sendMessage(tabId, {
+            type: 'BLOCK_DOMAIN',
+            domain: domain,
+            blockMessage: 'This domain is currently blocked based on your reminder settings.'
+          });
+        }, 1000); // Wait for content script to load
+      }
+    } catch (error) {
+      // Ignore URL parsing errors
     }
   }
   if (changeInfo.title && activeTabs.has(tabId)) {
@@ -415,22 +467,98 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       sendResponse({ activeTabs: currentTabs });
       return true;
 
+    case 'CLOSE_TAB':
+      if (sender.tab?.id) {
+        chrome.tabs.remove(sender.tab.id);
+        sendResponse({ success: true });
+      } else {
+        sendResponse({ success: false, error: 'No tab ID' });
+      }
+      return true;
+
+    case 'BLOCK_DOMAIN':
+      blockDomainInAllTabs(message.domain, message.blockMessage).then(result => {
+        sendResponse(result);
+      });
+      return true;
+
+    case 'CHECK_DOMAIN_BLOCKED':
+      checkDomainBlocked(message.domain).then(isBlocked => {
+        sendResponse({ isBlocked });
+      });
+      return true;
+
     default:
       console.warn("Unknown message type:", message.type);
       sendResponse({ success: false, error: "Unknown message type" });
   }
 });
 
+// Domain blocking functions
+async function blockDomainInAllTabs(domain, blockMessage) {
+  try {
+    const tabs = await chrome.tabs.query({});
+    const blockedTabs = [];
+
+    for (const tab of tabs) {
+      if (tab.url && shouldBlockTab(tab.url, domain)) {
+        try {
+          await chrome.tabs.sendMessage(tab.id, {
+            type: 'BLOCK_DOMAIN',
+            domain: domain,
+            blockMessage: blockMessage
+          });
+          blockedTabs.push(tab.id);
+        } catch (error) {
+          console.warn(`Failed to send block message to tab ${tab.id}:`, error);
+        }
+      }
+    }
+
+    console.log(`Blocked domain ${domain} in ${blockedTabs.length} tabs`);
+    return { success: true, blockedTabs: blockedTabs.length };
+  } catch (error) {
+    console.error('Error blocking domain:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+async function checkDomainBlocked(domain) {
+  try {
+    const { token } = await chrome.storage.local.get(["token"]);
+    if (!token) return false;
+
+    const response = await fetch(`${EXTENSION_CONFIG.API_URL}/api/reminders/check-blocked/${domain}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      return data.isBlocked;
+    }
+  } catch (error) {
+    console.error('Error checking domain block status:', error);
+  }
+  return false;
+}
+
+function shouldBlockTab(url, domain) {
+  try {
+    const tabDomain = new URL(url).hostname;
+    return tabDomain.includes(domain) || domain.includes(tabDomain);
+  } catch (error) {
+    return false;
+  }
+}
+
 chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => {
-  const allowedOrigins = [
-    'http://localhost:5173',
-    'http://localhost:3000', 
-    'https://screentime-recoder.vercel.app',
-    'https://screentime-recoder.onrender.com'
-  ];
+  const allowedOrigins = getAllowedOrigins();
 
   if (!allowedOrigins.includes(sender.origin)) {
-    console.warn(" Rejected message from unauthorized origin:", sender.origin);
+    console.warn("Rejected message from unauthorized origin:", sender.origin);
     return;
   }
 
