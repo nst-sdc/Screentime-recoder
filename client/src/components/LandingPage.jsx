@@ -66,12 +66,22 @@ const LandingPage = () => {
             Screentime Recorder helps you understand and improve your digital
             habits — with live analytics, goal tracking, and full privacy.
           </p>
-          <Link
-            to="/register"
-            className="mt-10 inline-block bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3 rounded-full shadow-lg hover:scale-105 transition"
-          >
-            Get Started
-          </Link>
+          <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <Link
+              to="/register"
+              className="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3 rounded-full shadow-lg hover:scale-105 transition"
+            >
+              Get Started
+            </Link>
+            <a
+              href="/extension.zip"
+              download="screentime-recorder-extension.zip"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-full shadow-lg hover:scale-105 transition flex items-center gap-2"
+            >
+              <FaLaptopCode className="text-lg" />
+              Download Extension
+            </a>
+          </div>
         </div>
       </div>
 
@@ -103,6 +113,49 @@ const LandingPage = () => {
         </div>
       </section>
 
+      {/* Extension Download Section */}
+      <section className="py-16 px-8 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 mt-16 rounded-2xl">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="flex justify-center mb-6">
+            <div className="bg-blue-100 dark:bg-blue-900/50 p-4 rounded-full">
+              <FaLaptopCode className="text-4xl text-blue-600 dark:text-blue-400" />
+            </div>
+          </div>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900 dark:text-white">
+            Install Chrome Extension
+          </h2>
+          <p className="text-lg text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
+            Download our Chrome extension to automatically track your browsing
+            activity. Simple installation, instant sync with your dashboard.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <a
+              href="/extension.zip"
+              download="screentime-recorder-extension.zip"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-4 rounded-full shadow-lg hover:scale-105 transition flex items-center gap-3 text-lg"
+            >
+              <FaLaptopCode className="text-xl" />
+              Download Extension
+            </a>
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              Compatible with Chrome & Edge
+            </div>
+          </div>
+          <div className="mt-8 bg-white/50 dark:bg-gray-800/50 rounded-lg p-6 text-left max-w-2xl mx-auto">
+            <h4 className="font-semibold text-gray-900 dark:text-white mb-3">
+              Installation Steps:
+            </h4>
+            <ol className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+              <li>1. Download the extension zip file</li>
+              <li>2. Open Chrome and go to chrome://extensions/</li>
+              <li>3. Enable "Developer mode" (top right)</li>
+              <li>4. Click "Load unpacked" and select the extracted folder</li>
+              <li>5. Sign in to start tracking your activity</li>
+            </ol>
+          </div>
+        </div>
+      </section>
+
       {/* cards */}
       <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
         {features.map((feature, idx) =>
@@ -130,17 +183,23 @@ const LandingPage = () => {
         <p className="text-gray-600 dark:text-gray-300 mb-6">
           Join hundreds taking control of their screen time today.
         </p>
-        <Link
-          to="/register"
-          className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-full font-medium transition"
-        >
-          Create Free Account
-        </Link>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <Link
+            to="/register"
+            className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-full font-medium transition"
+          >
+            Create Free Account
+          </Link>
+          <a
+            href="/extension.zip"
+            download="screentime-recorder-extension.zip"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full font-medium transition flex items-center gap-2"
+          >
+            <FaLaptopCode />
+            Get Extension
+          </a>
+        </div>
       </div>
-
-      <footer className="mt-16 text-center text-sm text-gray-500 dark:text-gray-400">
-        © 2025 Screentime Recorder.
-      </footer>
     </div>
   );
 };

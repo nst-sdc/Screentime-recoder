@@ -123,31 +123,13 @@
         background-color: #1d4ed8;
       }
 
-      .btn-gray {
-        background-color: #4b5563;
-        color: white;
-      }
-
-      .btn-gray:hover {
-        background-color: #374151;
-      }
-
       .card-blue {
         background-color: #eff6ff;
         border: 1px solid #dbeafe;
       }
 
-      .card-gray {
-        background-color: #f9fafb;
-        border: 1px solid #e5e7eb;
-      }
-
       .text-blue {
         color: #1d4ed8;
-      }
-
-      .text-gray {
-        color: #6b7280;
       }
 
       .text-small {
@@ -208,15 +190,6 @@
         text-overflow: ellipsis;
       }
 
-      .btn-green {
-        background-color: #059669;
-        color: white;
-      }
-
-      .btn-green:hover {
-        background-color: #047857;
-      }
-
       .test-section {
         margin-top: 10px;
         padding-top: 10px;
@@ -264,8 +237,6 @@
         </button>
       </div>
     </div>
-
-    <!-- Active Tabs Section -->
     <div class="card card-blue">
       <div class="section-title text-blue">Active Tracking:</div>
       <button type="button" class="btn btn-small btn-blue" id="activeTabsBtn">
@@ -275,35 +246,6 @@
         <div>Loading active tabs...</div>
       </div>
     </div>
-
-    <!-- Debug Section -->
-    <div class="card card-gray">
-      <div class="section-title text-gray">Debug Info:</div>
-      <button type="button" class="btn btn-small btn-gray" id="debugBtn">
-        View Activity Log
-      </button>
-      <div id="debugInfo" class="debug-content hidden">
-        <div>Recent activities will appear here...</div>
-      </div>
-      <!-- Test buttons for debugging -->
-      <div class="test-section">
-        <button
-          type="button"
-          class="btn btn-small btn-green test-btn"
-          id="testTokenBtn"
-        >
-          Set Test Token
-        </button>
-        <button
-          type="button"
-          class="btn btn-small btn-danger"
-          id="clearTokenBtn"
-        >
-          Clear Token
-        </button>
-      </div>
-    </div>
-
     <script src="popup.js"></script>
   </body>
 </html>

@@ -19,7 +19,6 @@ export const AuthProvider = ({ children }) => {
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
-  // Helper function to communicate with extension
   const sendTokenToExtension = (authToken) => {
     try {
       window.postMessage({
@@ -27,7 +26,7 @@ export const AuthProvider = ({ children }) => {
         token: authToken
       }, window.location.origin);
     } catch (error) {
-      console.warn("Extension communication failed:", error);
+      // Silent fail for extension communication
     }
   };
 
@@ -40,11 +39,8 @@ export const AuthProvider = ({ children }) => {
     }
   }, [token]);
 
-  // Listen for extension availability and auth success
   useEffect(() => {
     const handleExtensionMessage = (event) => {
-      console.log("Received message:", event.data, "from origin:", event.origin);
-      
       if (event.origin !== window.location.origin) return;
       
       if (event.data.type === "EXTENSION_AVAILABLE") {
@@ -53,7 +49,7 @@ export const AuthProvider = ({ children }) => {
           sendTokenToExtension(currentToken);
         }
       } else if (event.data.type === "EXTENSION_AUTH_SUCCESS") {
-        console.log("Extension authentication successful");
+        // Extension authentication successful
       }
     };
 
@@ -71,7 +67,6 @@ export const AuthProvider = ({ children }) => {
           setUser(res.data.data);
           setIsAuthenticated(true);
         } catch (err) {
-          console.error('Token verification failed:', err);
           logout();
         }
       }
@@ -99,7 +94,6 @@ export const AuthProvider = ({ children }) => {
     window.location.href = `${API_BASE_URL}/auth/google`;
   };
 
-  // Email + Password registration
   const registerUser = async (userData) => {
     try {
       const res = await axios.post('/auth/register', userData);
@@ -121,9 +115,6 @@ export const AuthProvider = ({ children }) => {
         throw new Error(res.data.message || 'Registration failed');
       }
     } catch (err) {
-      console.error('Registration failed:', err);
-      
-      // Handle different error types
       if (err.response?.data?.message) {
         throw new Error(err.response.data.message);
       } else if (err.message) {
@@ -146,7 +137,6 @@ export const AuthProvider = ({ children }) => {
         setToken(jwt);
         axios.defaults.headers.common['Authorization'] = `Bearer ${jwt}`;
 
-        // Send token to extension
         sendTokenToExtension(jwt);
 
         const userRes = await axios.get('/auth/verify');
@@ -158,9 +148,6 @@ export const AuthProvider = ({ children }) => {
         throw new Error(res.data.message || 'Login failed');
       }
     } catch (err) {
-      console.error('Login failed:', err);
-      
-      // Handle different error types
       if (err.response?.data?.message) {
         throw new Error(err.response.data.message);
       } else if (err.message) {
@@ -175,7 +162,7 @@ export const AuthProvider = ({ children }) => {
     try {
       await axios.post('/auth/logout');
     } catch (err) {
-      console.error('Logout error:', err);
+      // Silent fail for logout
     } finally {
       setUser(null);
       setToken(null);
@@ -191,7 +178,6 @@ export const AuthProvider = ({ children }) => {
       setUser(res.data.data);
       return res.data;
     } catch (err) {
-      console.error('Update profile error:', err);
       throw err;
     }
   };
@@ -201,7 +187,6 @@ export const AuthProvider = ({ children }) => {
       await axios.delete('/auth/account');
       logout();
     } catch (err) {
-      console.error('Delete account error:', err);
       throw err;
     }
   };

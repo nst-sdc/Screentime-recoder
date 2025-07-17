@@ -29,6 +29,25 @@ const ActivityHeatmap = ({ timeRange = "week" }) => {
     [heatmapData]
   );
 
+  useEffect(
+    () => {
+      const handleThemeChange = () => {
+        if (heatmapData.length > 0) {
+          drawHeatmap();
+        }
+      };
+
+      const observer = new MutationObserver(handleThemeChange);
+      observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ["class"]
+      });
+
+      return () => observer.disconnect();
+    },
+    [heatmapData]
+  );
+
   const fetchHeatmapData = async () => {
     try {
       setLoading(true);
@@ -49,7 +68,6 @@ const ActivityHeatmap = ({ timeRange = "week" }) => {
         calculateInsights(processedData);
       }
     } catch (error) {
-      console.error("Error fetching heatmap data:", error);
       generateSampleData();
     } finally {
       setLoading(false);
@@ -73,7 +91,6 @@ const ActivityHeatmap = ({ timeRange = "week" }) => {
       });
     });
 
-    // Process actual data
     timeData.forEach(item => {
       const date = new Date(item._id);
       const dayOfWeek = date.getDay();
@@ -82,7 +99,7 @@ const ActivityHeatmap = ({ timeRange = "week" }) => {
       if (hour <= 20) {
         const index = dayOfWeek * 21 + hour;
         if (heatmapArray[index]) {
-          heatmapArray[index].value = item.totalDuration / 1000 / 60; // Convert to minutes
+          heatmapArray[index].value = item.totalDuration / 1000 / 60;
           heatmapArray[index].duration = item.totalDuration;
         }
       }
@@ -100,37 +117,27 @@ const ActivityHeatmap = ({ timeRange = "week" }) => {
       hours.forEach(hour => {
         let value = 0;
 
-        // Create realistic activity patterns
         if (dayIndex >= 1 && dayIndex <= 5) {
-          // Weekdays
           if (hour >= 9 && hour <= 17) {
-            // Work hours - higher activity
-            value = Math.random() * 80 + 40; // 40-120 minutes
+            value = Math.random() * 80 + 40;
           } else if (hour >= 7 && hour <= 8) {
-            // Morning routine
-            value = Math.random() * 30 + 15; // 15-45 minutes
+            value = Math.random() * 30 + 15;
           } else if (hour >= 18 && hour <= 22) {
-            // Evening
-            value = Math.random() * 50 + 20; // 20-70 minutes
+            value = Math.random() * 50 + 20;
           } else if (hour >= 23 || hour <= 6) {
-            // Night/early morning
-            value = Math.random() * 10; // 0-10 minutes
+            value = Math.random() * 10;
           } else {
-            value = Math.random() * 25; // 0-25 minutes
+            value = Math.random() * 25;
           }
         } else {
-          // Weekends
           if (hour >= 10 && hour <= 14) {
-            // Weekend afternoon peak
-            value = Math.random() * 70 + 30; // 30-100 minutes
+            value = Math.random() * 70 + 30;
           } else if (hour >= 15 && hour <= 20) {
-            // Weekend evening
-            value = Math.random() * 60 + 20; // 20-80 minutes
+            value = Math.random() * 60 + 20;
           } else if (hour >= 8 && hour <= 9) {
-            // Weekend morning
-            value = Math.random() * 20 + 10; // 10-30 minutes
+            value = Math.random() * 20 + 10;
           } else {
-            value = Math.random() * 15; // 0-15 minutes
+            value = Math.random() * 15;
           }
         }
 
@@ -149,7 +156,6 @@ const ActivityHeatmap = ({ timeRange = "week" }) => {
   };
 
   const calculateInsights = data => {
-    // Calculate peak hours
     const hourlyTotals = Array(24).fill(0);
     data.forEach(d => {
       hourlyTotals[d.hour] += d.value;
@@ -166,7 +172,6 @@ const ActivityHeatmap = ({ timeRange = "week" }) => {
       ? "PM"
       : "AM"}`;
 
-    // Calculate most active day
     const dailyTotals = Array(7).fill(0);
     const dayNames = [
       "Sunday",
@@ -184,11 +189,9 @@ const ActivityHeatmap = ({ timeRange = "week" }) => {
     const maxDayIndex = dailyTotals.indexOf(Math.max(...dailyTotals));
     const mostActiveDay = dayNames[maxDayIndex];
 
-    // Calculate consistency (simplified)
     const nonZeroDays = dailyTotals.filter(total => total > 0).length;
     const consistency = Math.round(nonZeroDays / 7 * 100);
 
-    // Detect work pattern (high activity during weekdays 9-5)
     const workHourActivity = data
       .filter(d => d.day >= 1 && d.day <= 5 && d.hour >= 9 && d.hour <= 17)
       .reduce((sum, d) => sum + d.value, 0);
@@ -212,8 +215,8 @@ const ActivityHeatmap = ({ timeRange = "week" }) => {
     const width = 600 - margin.left - margin.right;
     const height = 300 - margin.bottom - margin.top;
 
-    const cellWidth = width / 21; // 21 hours (0-20)
-    const cellHeight = height / 7; // 7 days
+    const cellWidth = width / 21;
+    const cellHeight = height / 7;
 
     const svgElement = svg
       .attr("width", width + margin.left + margin.right)
@@ -223,24 +226,19 @@ const ActivityHeatmap = ({ timeRange = "week" }) => {
       .append("g")
       .attr("transform", `translate(${margin.left},${margin.top})`);
 
-    const maxValue = d3.max(heatmapData, d => d.value) || 60;
+    const maxValue = d3.max(heatmapData, d => +d.value || 0) || 100;
 
-    // Color scheme that matches the image: gray → light blue → green → yellow → orange → red
-    const colorSteps = [
-      "#f5f5f5", // Very low (gray)
-      "#dbeafe", // Low (light blue)
-      "#86efac", // Medium-low (green)
-      "#fde047", // Medium (yellow)
-      "#fb923c", // Medium-high (orange)
-      "#ef4444" // High (red)
-    ];
+    const isDark = document.documentElement.classList.contains("dark");
+
+    const colorSteps = isDark
+      ? ["#374151", "#1e40af", "#059669", "#d97706", "#dc2626", "#991b1b"]
+      : ["#f5f5f5", "#dbeafe", "#86efac", "#fde047", "#fb923c", "#ef4444"];
 
     const stepColorScale = d3
       .scaleQuantize()
       .domain([0, maxValue])
       .range(colorSteps);
 
-    // Draw cells
     g
       .selectAll(".cell")
       .data(heatmapData)
@@ -251,46 +249,40 @@ const ActivityHeatmap = ({ timeRange = "week" }) => {
       .attr("y", d => d.day * cellHeight)
       .attr("width", cellWidth - 1)
       .attr("height", cellHeight - 1)
-      .attr("fill", d => (d.value === 0 ? "#f5f5f5" : stepColorScale(d.value)))
-      .attr("stroke", "#ffffff")
+      .attr("fill", d => stepColorScale(Number(d.value)))
+      .attr("stroke", isDark ? "#374151" : "#ffffff")
       .attr("stroke-width", 1)
       .attr("rx", 4)
       .attr("ry", 4)
-      .attr(
-        "class",
-        "cursor-pointer transition-all duration-200 hover:brightness-110"
-      )
+      .style("cursor", "pointer")
       .on("mouseover", function(event, d) {
-        // Tooltip
         const tooltip = d3
           .select("body")
           .append("div")
-          .attr(
-            "class",
-            "fixed pointer-events-none bg-gray-900 text-white text-xs rounded-lg px-3 py-2 shadow-lg z-50 opacity-0 transition-opacity duration-200"
-          );
+          .attr("class", "heatmap-tooltip")
+          .style("position", "absolute")
+          .style("background", isDark ? "#1f2937" : "#ffffff")
+          .style("color", isDark ? "#f9fafb" : "#111827")
+          .style("border", `1px solid ${isDark ? "#374151" : "#e5e7eb"}`)
+          .style("border-radius", "6px")
+          .style("padding", "8px 12px")
+          .style("font-size", "12px")
+          .style("box-shadow", "0 4px 6px -1px rgba(0, 0, 0, 0.1)")
+          .style("pointer-events", "none")
+          .style("z-index", "1000").html(`
+            <div><strong>${d.dayName}</strong> at ${d.hour}:00</div>
+            <div>Activity: ${Math.round(d.value)} minutes</div>
+          `);
 
+        const [mouseX, mouseY] = d3.pointer(event, document.body);
         tooltip
-          .html(
-            `
-          <div><strong>${d.dayName}</strong></div>
-          <div>${d.hour.toString().padStart(2, "0")}:00</div>
-          <div>${Math.round(d.value)} minutes</div>
-        `
-          )
-          .classed("opacity-0", false)
-          .classed("opacity-100", true)
-          .style("left", event.pageX + 10 + "px")
-          .style("top", event.pageY - 10 + "px");
-
-        d3.select(this).attr("stroke", "#333333").attr("stroke-width", 2);
+          .style("left", mouseX + 10 + "px")
+          .style("top", mouseY - 10 + "px");
       })
       .on("mouseout", function() {
-        d3.selectAll(".fixed.pointer-events-none").remove();
-        d3.select(this).attr("stroke", "#ffffff").attr("stroke-width", 1);
+        d3.selectAll(".heatmap-tooltip").remove();
       });
 
-    // Add day labels
     const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     g
       .selectAll(".day-label")
@@ -302,10 +294,10 @@ const ActivityHeatmap = ({ timeRange = "week" }) => {
       .attr("y", (d, i) => i * cellHeight + cellHeight / 2)
       .attr("dy", "0.35em")
       .attr("text-anchor", "end")
-      .attr("class", "text-sm fill-gray-600 dark:fill-gray-400")
+      .attr("fill", isDark ? "#9CA3AF" : "#6B7280")
+      .style("font-size", "12px")
       .text(d => d);
 
-    // Add hour labels
     const hours = ["00:00", "04:00", "08:00", "12:00", "16:00", "20:00"];
     const hourPositions = [0, 4, 8, 12, 16, 20];
 
@@ -318,7 +310,8 @@ const ActivityHeatmap = ({ timeRange = "week" }) => {
       .attr("x", (d, i) => hourPositions[i] * cellWidth + cellWidth / 2)
       .attr("y", -10)
       .attr("text-anchor", "middle")
-      .attr("class", "text-sm fill-gray-600 dark:fill-gray-400")
+      .attr("fill", isDark ? "#9CA3AF" : "#6B7280")
+      .style("font-size", "12px")
       .text(d => d);
   };
 
@@ -334,57 +327,69 @@ const ActivityHeatmap = ({ timeRange = "week" }) => {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg font-semibold text-gray-900">
-          Activity Heatmap
-        </h3>
-        <div className="flex items-center space-x-2 text-sm text-gray-500">
-          <span>Low</span>
-          <div className="flex space-x-1">
-            <div className="w-3 h-3 bg-gray-200 rounded" />
-            <div className="w-3 h-3 bg-blue-100 rounded" />
-            <div className="w-3 h-3 bg-green-300 rounded" />
-            <div className="w-3 h-3 bg-yellow-300 rounded" />
-            <div className="w-3 h-3 bg-orange-400 rounded" />
-            <div className="w-3 h-3 bg-red-500 rounded" />
+    <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm p-6">
+      <div className="w-full overflow-x-auto">
+        <div className="min-w-[360px] sm:min-w-[500px] md:min-w-full">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Activity Heatmap
+            </h3>
+            <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
+              <span>Low</span>
+              <div className="flex space-x-1">
+                <div className="w-3 h-3 bg-gray-200 dark:bg-gray-700 rounded" />
+                <div className="w-3 h-3 bg-blue-200 dark:bg-blue-900 rounded" />
+                <div className="w-3 h-3 bg-green-300 dark:bg-green-700 rounded" />
+                <div className="w-3 h-3 bg-yellow-300 dark:bg-yellow-600 rounded" />
+                <div className="w-3 h-3 bg-orange-400 dark:bg-orange-600 rounded" />
+                <div className="w-3 h-3 bg-red-500 dark:bg-red-600 rounded" />
+              </div>
+              <span>High</span>
+            </div>
           </div>
-          <span>High</span>
-        </div>
-      </div>
 
-      <div className="mb-6">
-        <svg ref={svgRef} />
-      </div>
-
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-        <div className="bg-gray-50 rounded-lg p-4">
-          <div className="text-sm text-gray-600 mb-1">Peak Hours</div>
-          <div className="text-lg font-semibold text-gray-900">
-            {insights.peakHours}
+          <div className="mb-6">
+            <svg ref={svgRef} />
           </div>
-        </div>
 
-        <div className="bg-gray-50 rounded-lg p-4">
-          <div className="text-sm text-gray-600 mb-1">Most Active Day</div>
-          <div className="text-lg font-semibold text-gray-900">
-            {insights.mostActiveDay}
-          </div>
-        </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+              <div className="text-sm text-gray-600 dark:text-gray-300 mb-1">
+                Peak Hours
+              </div>
+              <div className="text-lg font-semibold text-gray-900 dark:text-white">
+                {insights.peakHours}
+              </div>
+            </div>
 
-        <div className="bg-gray-50 rounded-lg p-4">
-          <div className="text-sm text-gray-600 mb-1">Consistency</div>
-          <div className="text-lg font-semibold text-blue-600">
-            {insights.consistency}% consistency
-          </div>
-        </div>
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+              <div className="text-sm text-gray-600 dark:text-gray-300 mb-1">
+                Most Active Day
+              </div>
+              <div className="text-lg font-semibold text-gray-900 dark:text-white">
+                {insights.mostActiveDay}
+              </div>
+            </div>
 
-        <div className="bg-gray-50 rounded-lg p-4">
-          <div className="text-sm text-gray-600 mb-1">Pattern</div>
-          <div className="text-lg font-semibold text-green-600">
-            {insights.workPattern
-              ? "Work pattern detected"
-              : "Flexible schedule"}
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+              <div className="text-sm text-gray-600 dark:text-gray-300 mb-1">
+                Consistency
+              </div>
+              <div className="text-lg font-semibold text-blue-600">
+                {insights.consistency}% consistency
+              </div>
+            </div>
+
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+              <div className="text-sm text-gray-600 dark:text-gray-300 mb-1">
+                Pattern
+              </div>
+              <div className="text-lg font-semibold text-green-600">
+                {insights.workPattern
+                  ? "Work pattern detected"
+                  : "Flexible schedule"}
+              </div>
+            </div>
           </div>
         </div>
       </div>

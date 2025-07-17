@@ -242,9 +242,10 @@ const AppList = ({
   data = [],
   showProductivity = true,
   maxItems = 10,
-  sortBy = "duration"
+  sortBy: initialSortBy = "duration"
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState(initialSortBy);
   const [sortOrder, setSortOrder] = useState("desc");
   const [filterBy, setFilterBy] = useState("all");
 
@@ -345,9 +346,7 @@ const AppList = ({
 
   return (
     <div className="space-y-4">
-      {/* Controls */}
       <div className="flex flex-col sm:flex-row gap-3 pb-4 border-b border-gray-200 dark:border-gray-700">
-        {/* Search */}
         <div className="relative flex-1">
           <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
           <input
@@ -442,7 +441,7 @@ const AppList = ({
               return (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors group"
+                  className="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group"
                 >
                   <div className="flex items-center space-x-3 flex-1 min-w-0">
                     <div className="flex-shrink-0 text-xl">
