@@ -259,12 +259,6 @@ const Dashboard = () => {
             </p>
           </div>
           <div className="mt-4 sm:mt-0 flex flex-col sm:flex-row items-start sm:items-center gap-3">
-            <button
-              onClick={() => navigate("/reminders")}
-              className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center gap-2"
-            >
-              <span>Reminders</span>
-            </button>
             <select
               value={timeRange}
               onChange={e => setTimeRange(e.target.value)}

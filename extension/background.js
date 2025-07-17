@@ -1,6 +1,3 @@
-console.log("Enhanced Background script is running...");
-
-// Import configuration
 importScripts('config.js');
 
 // Helper functions
@@ -360,24 +357,6 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     if (tab.active) {
       await handleTabActivated(tabId, changeInfo.url, tab.title);
     }
-
-    // Check if the new URL should be blocked
-    try {
-      const domain = new URL(changeInfo.url).hostname;
-      const isBlocked = await checkDomainBlocked(domain);
-      
-      if (isBlocked) {
-        setTimeout(() => {
-          chrome.tabs.sendMessage(tabId, {
-            type: 'BLOCK_DOMAIN',
-            domain: domain,
-            blockMessage: 'This domain is currently blocked based on your reminder settings.'
-          });
-        }, 1000); // Wait for content script to load
-      }
-    } catch (error) {
-      // Ignore URL parsing errors
-    }
   }
   if (changeInfo.title && activeTabs.has(tabId)) {
     activeTabs.get(tabId).title = changeInfo.title;
@@ -409,11 +388,11 @@ chrome.windows.onFocusChanged.addListener(async (windowId) => {
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log(" Received message:", message);
+  console.log("Background script received message:", message);
 
   switch (message.type) {
     case 'SET_TOKEN':
-      console.log("🔐 Storing auth token");
+      console.log("Storing auth token");
       chrome.storage.local.set({
         token: message.token,
         authStatus: 'authenticated'
@@ -425,6 +404,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     case 'GET_AUTH_STATUS':
       chrome.storage.local.get(['token', 'authStatus'], (result) => {
+        console.log("Auth status requested:", result);
         sendResponse({
           isAuthenticated: !!result.token,
           status: result.authStatus || 'unknown'
@@ -433,9 +413,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       return true;
 
     case 'CLEAR_AUTH':
+      console.log("Clearing auth");
       endAllActiveSessions().then(() => {
         chrome.storage.local.remove(['token', 'authStatus'], () => {
-          console.log(" Authentication cleared");
+          console.log("Authentication cleared");
           sendResponse({ success: true });
         });
       });
@@ -476,83 +457,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       }
       return true;
 
-    case 'BLOCK_DOMAIN':
-      blockDomainInAllTabs(message.domain, message.blockMessage).then(result => {
-        sendResponse(result);
-      });
-      return true;
-
-    case 'CHECK_DOMAIN_BLOCKED':
-      checkDomainBlocked(message.domain).then(isBlocked => {
-        sendResponse({ isBlocked });
-      });
-      return true;
-
     default:
       console.warn("Unknown message type:", message.type);
       sendResponse({ success: false, error: "Unknown message type" });
   }
 });
-
-// Domain blocking functions
-async function blockDomainInAllTabs(domain, blockMessage) {
-  try {
-    const tabs = await chrome.tabs.query({});
-    const blockedTabs = [];
-
-    for (const tab of tabs) {
-      if (tab.url && shouldBlockTab(tab.url, domain)) {
-        try {
-          await chrome.tabs.sendMessage(tab.id, {
-            type: 'BLOCK_DOMAIN',
-            domain: domain,
-            blockMessage: blockMessage
-          });
-          blockedTabs.push(tab.id);
-        } catch (error) {
-          console.warn(`Failed to send block message to tab ${tab.id}:`, error);
-        }
-      }
-    }
-
-    console.log(`Blocked domain ${domain} in ${blockedTabs.length} tabs`);
-    return { success: true, blockedTabs: blockedTabs.length };
-  } catch (error) {
-    console.error('Error blocking domain:', error);
-    return { success: false, error: error.message };
-  }
-}
-
-async function checkDomainBlocked(domain) {
-  try {
-    const { token } = await chrome.storage.local.get(["token"]);
-    if (!token) return false;
-
-    const response = await fetch(`${EXTENSION_CONFIG.API_URL}/api/reminders/check-blocked/${domain}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      return data.isBlocked;
-    }
-  } catch (error) {
-    console.error('Error checking domain block status:', error);
-  }
-  return false;
-}
-
-function shouldBlockTab(url, domain) {
-  try {
-    const tabDomain = new URL(url).hostname;
-    return tabDomain.includes(domain) || domain.includes(tabDomain);
-  } catch (error) {
-    return false;
-  }
-}
 
 chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => {
   const allowedOrigins = getAllowedOrigins();

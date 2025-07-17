@@ -10,7 +10,6 @@ import authRouter from "./routes/auth.route.js";
 import trackingRouter from "./routes/tracking.route.js";
 import activityRouter from "./routes/activity.route.js";
 import domainRouter from "./routes/domain.route.js";
-import reminderRouter from "./routes/reminder.route.js";
 import healthRouter from "./routes/health.route.js";
 
 const app = express();
@@ -67,7 +66,6 @@ app.use("/api/auth", authRouter);
 app.use("/api/tracking", trackingRouter);
 app.use("/api/activity", activityRouter);
 app.use("/api/domain", domainRouter);
-app.use("/api/reminders", reminderRouter);
 app.use("/api", healthRouter);
 
 app.get("/api/health", (req, res) => {
