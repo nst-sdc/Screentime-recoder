@@ -5,13 +5,10 @@ let intervalId = null;
 let totalTracked = 0;
 
 export function trackTimeOnDomain(domainName) {
-  console.log("Tracking started for:", domainName);
-
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
   const token = localStorage.getItem("token");
 
   if (!token) {
-    console.warn("No token found in localStorage");
     return () => {};
   }
 
@@ -28,7 +25,6 @@ export function trackTimeOnDomain(domainName) {
 
   document.addEventListener("visibilitychange", () => {
     active = !document.hidden;
-    console.log(`Tab visibility changed: ${active ? "Visible" : "Hidden"}`);
   });
 
   intervalId = setInterval(() => {
@@ -36,12 +32,11 @@ export function trackTimeOnDomain(domainName) {
 
     if (active && now - lastActivity < 60000) {
       totalTracked += 30;
-      console.log("Sending 30s update for:", domainName);
 
       const trackingData = {
         url: `https://${domainName}`,
         domain: domainName,
-        duration: 30 * 1000, // duration in ms
+        duration: 30 * 1000,
         startTime,
         sessionId,
         tabId: 1,
@@ -57,8 +52,7 @@ export function trackTimeOnDomain(domainName) {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         },
-        body: JSON.stringify(trackingData)
-      })
+        body: JSON.stringify(trackingData)        })
         .then(async res => {
           if (!res.ok) {
             const errorText = await res.text();
@@ -66,17 +60,12 @@ export function trackTimeOnDomain(domainName) {
           }
           return res.json();
         })
-        .then(data => console.log("Tracking data sent:", data))
+        .then(data => {
+          // Tracking data sent successfully
+        })
         .catch(err => {
-          console.error("Error sending tracking data:", err);
-          if (err.message.includes('401')) {
-            console.warn("Authentication failed - token may be expired");
-          }
+          // Silent fail for tracking errors
         });
-    } else if (!active) {
-      console.log("Tab inactive, skipping tracking update");
-    } else {
-      console.log("User idle for >1min, skipping tracking update");
     }
   }, 30000);
 
@@ -89,9 +78,6 @@ export function trackTimeOnDomain(domainName) {
     const timeSpentSec = Math.floor((endTime - startTime) / 1000);
     const remainingTime = timeSpentSec - totalTracked;
 
-    console.log("Cleanup:", `${timeSpentSec}s spent, ${remainingTime}s left`);
-
-    // Send final tracking data with proper authorization
     if (remainingTime > 0) {
       const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
       fetch(`${API_BASE_URL}/domain/track`, {
@@ -103,19 +89,23 @@ export function trackTimeOnDomain(domainName) {
         body: JSON.stringify({
           url: `https://${domainName}`,
           domain: domainName,
-          duration: remainingTime * 1000, // Convert to ms
+          duration: remainingTime * 1000,
           startTime,
           sessionId,
           tabId: 1,
           title: document.title,
-          action: "cleanup",
+          action: "end",
           isActive: false,
           idleTime: 0
         })
       })
       .then(res => res.json())
-      .then(data => console.log("Final tracking data sent:", data))
-      .catch(err => console.error("Error sending final time data:", err));
+      .then(data => {
+        // Final tracking data sent successfully
+      })
+      .catch(err => {
+        // Silent fail for final tracking
+      });
     }
     startTime = null;
     sessionId = null;

@@ -4,69 +4,47 @@ import { useNavigate, Link } from "react-router-dom";
 import UndrawSVG from "../assets/undraw.svg";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+import CutLogo from "../assets/CutLogo.svg";
+
+
 const Login = () => {
   const { login: googleLogin, loginWithCredentials, isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
 
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  });
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      navigate("/dashboard");
-    }
+    if (isAuthenticated) navigate("/dashboard");
   }, [isAuthenticated, navigate]);
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
     if (error) setError('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!formData.email || !formData.password) {
-      setError('Please enter both email and password');
-      return;
-    }
+    if (!formData.email || !formData.password) return setError('Please enter both email and password');
 
     setIsSubmitting(true);
     setError('');
 
     try {
       const { token, user } = await loginWithCredentials(formData.email, formData.password);
-
-      if (chrome?.storage?.local) {
-        chrome.storage.local.set({
-          token,
-          authStatus: 'authenticated',
-          user,
-        }, () => {
-          console.log("Token & authStatus saved for extension.");
-        });
-      }
-
+      chrome?.storage?.local?.set({ token, authStatus: 'authenticated', user });
       navigate("/dashboard");
     } catch (error) {
-      setError(error.response?.data?.message || 'Login failed. Please check your credentials.');
       chrome?.storage?.local?.set({ authStatus: 'network_error' });
-      setError(error.message || 'Login failed. Please check your credentials.');
+      setError(error.response?.data?.message || error.message || 'Login failed.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleGoogleLogin = () => {
-    googleLogin();
-  };
+  const handleGoogleLogin = () => googleLogin();
 
   if (isLoading) {
     return (
@@ -81,25 +59,23 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-green-50 dark:from-[#121b22] dark:to-[#121b22] px-6 py-24 relative">
-      {/* Logo Top Left */}
-      <div className="absolute top-6 left-8">
-        <h1 className="text-xl font-semibold text-green-700 dark:text-whatsDark-text">
-          ScreenRecorder{" "}
-          <span className="text-sm text-gray-500">
-            (logo/title yet to be made)
-          </span>
-        </h1>
-      </div>
+<div className="absolute top-6 left-6">
+  <img
+    src={CutLogo}
+    alt="Logo"
+    className="h-32 w-32 max-w-[128px] object-contain"
+  />
+  <h1 className="text-xl font-semibold text-green-700 dark:text-whatsDark-text">
+    
+  </h1>
+</div>
 
-      <div className="w-full max-w-7xl h-[700px] grid grid-cols-1 md:grid-cols-2 gap-14 bg-white dark:bg-[#1f2c33] shadow-2xl rounded-2xl overflow-hidden border border-green-200">
-        {/* Left Side: Login Options */}
-        <div className="flex flex-col justify-center px-14 py-12">
-          <h2 className="text-4xl font-bold text-green-700 dark:text-whatsDark-text mb-4">
-            Welcome Back
-          </h2>
-          <p className="text-gray-600 dark:text-whatsDark-text text-lg mb-8">
-            Login to manage your time and tasks efficiently.
-          </p>
+
+      <div className="w-full max-w-7xl grid grid-cols-1 md:grid-cols-2 gap-14 bg-white dark:bg-[#1f2c33] shadow-2xl rounded-2xl overflow-hidden border border-green-200">
+        {/* Left: Form Section */}
+        <div className="flex flex-col justify-center px-8 sm:px-14 py-12">
+          <h2 className="text-4xl font-bold text-green-700 dark:text-whatsDark-text mb-4">Welcome Back</h2>
+          <p className="text-gray-600 dark:text-whatsDark-text text-lg mb-8">Login to manage your time and tasks efficiently.</p>
 
           {error && (
             <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
@@ -117,7 +93,6 @@ const Login = () => {
               required
               className="w-full px-5 py-3 border border-gray-300 rounded-lg bg-white text-black dark:bg-[#2a3942] dark:text-white dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500"
             />
-
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
@@ -131,21 +106,14 @@ const Login = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 dark:text-white toggle-password"
-                style={{ background: 'none', border: 'none', padding: 0, margin: 0 }}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 dark:text-white bg-transparent outline-none focus:outline-none focus:ring-0 hover:bg-transparent active:bg-transparent"
               >
-                {showPassword ? (
-                  <FontAwesomeIcon icon={faEye} />
-                ) : (
-                  <FontAwesomeIcon icon={faEyeSlash} />
-                )}
+                <FontAwesomeIcon icon={showPassword ? faEye : faEyeSlash} />
               </button>
             </div>
 
             <div className="text-right">
-              <a href="#" className="text-green-600 hover:text-green-700 text-sm hover:underline">
-                Forgot Password?
-              </a>
+              <a href="#" className="text-green-600 hover:text-green-700 text-sm hover:underline">Forgot Password?</a>
             </div>
 
             <button
@@ -186,43 +154,29 @@ const Login = () => {
           <div className="mt-6 text-center">
             <p className="text-gray-600 dark:text-gray-400">
               Don't have an account?{" "}
-              <Link
-                to="/register"
-                className="text-green-600 hover:text-green-700 font-medium hover:underline"
-              >
+              <Link to="/register" className="text-green-600 hover:text-green-700 font-medium hover:underline">
                 Create one here
               </Link>
             </p>
           </div>
         </div>
 
-        {/* Right Side: Image Placeholder */}
-        <div className="flex flex-col items-center justify-center bg-green-100 dark:bg-[#1f2c33] p-12 space-y-6">
-
-          <div className="w-80 h-80 flex items-center justify-center">
-            <img
-              src={UndrawSVG}
-              alt="Undraw Illustration"
-              className="w-full max-w-[220px] object-contain rounded-lg shadow-lg"
-            />
-
-          <div className="w-80 h-80 bg-gradient-to-br from-green-200 to-green-300 dark:from-green-700 dark:to-green-800 rounded-lg shadow-md border border-green-200 flex items-center justify-center">
-            <div className="text-center text-green-800 dark:text-green-200">
-              <p className="text-lg font-semibold">Secure Login</p>
-            </div>
-
+        {/* Right Side */}
+        <div className="flex flex-col items-center justify-center bg-green-100 dark:bg-[#1f2c33] p-8 sm:p-12 space-y-6">
+          <div className="w-full flex justify-center">
+            <img src={UndrawSVG} alt="Undraw Illustration" className="w-full max-w-[220px] object-contain rounded-lg" />
           </div>
-          <h2 className="text-2xl font-semibold text-green-800 dark:text-whatsDark-text text-center">
-            Effortlessly manage your time and productivity
-          </h2>
-          <p className="text-green-700 dark:text-whatsDark-text text-center max-w-sm">
-            Stay on top of your tasks, track progress, and achieve more — all in
-            one place.
-          </p>
+          <div className="text-center">
+            <h2 className="text-2xl font-semibold text-green-800 dark:text-whatsDark-text">Secure Login</h2>
+            <p className="text-green-700 dark:text-whatsDark-text max-w-sm mx-auto mt-2">
+              Effortlessly manage your time and productivity
+              <br />
+              Stay on top of your tasks, track progress, and achieve more — all in one place.
+            </p>
+          </div>
         </div>
       </div>
     </div>
-  </div>
   );
 };
 

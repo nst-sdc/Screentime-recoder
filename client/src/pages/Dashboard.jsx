@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import ActivityHeatmap from "../components/charts/ActivityHeatmap";
 import AppList from "../components/charts/AppList";
@@ -36,12 +37,12 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Transform raw activity data for enhanced components
+  const navigate = useNavigate();
+
   const transformActivityData = rawData => {
     if (!Array.isArray(rawData)) return [];
 
     return rawData.map((item, index) => {
-      // Ensure productivity is a valid number
       const rawProductivity =
         item.avgProductivityScore || item.productivity || 5;
       const productivity =
@@ -62,7 +63,6 @@ const Dashboard = () => {
     });
   };
 
-  // Transform category data for charts
   const transformCategoryData = rawData => {
     if (!Array.isArray(rawData)) return [];
 
@@ -89,7 +89,6 @@ const Dashboard = () => {
       categoryMap[category].sessions += item.sessionCount || 1;
       categoryMap[category].domains.add(item._id);
 
-      // Safely handle productivity values
       const productivityValue = item.avgProductivityScore || 5;
       const validProductivity =
         typeof productivityValue === "number"
@@ -114,7 +113,6 @@ const Dashboard = () => {
     }));
   };
 
-  // Get category color mapping
   const getCategoryColor = category => {
     const colorMap = {
       Entertainment: "#EF4444",
@@ -191,7 +189,6 @@ const Dashboard = () => {
       };
 
       fetchSummary();
-
       return () => {
         stopTracking();
       };
@@ -201,7 +198,7 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-white p-6">
+      <div className="min-h-screen bg-[#dcfce7] dark:bg-gray-900 text-gray-800 dark:text-white p-6">
         <div className="animate-pulse">
           <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded mb-4 w-1/3" />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -219,7 +216,7 @@ const Dashboard = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-white p-6">
+      <div className="min-h-screen bg-[#dcfce7] dark:bg-gray-900 text-gray-800 dark:text-white p-6">
         <div className="text-center py-12">
           <div className="w-16 h-16 mx-auto mb-4 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center">
             <svg
@@ -252,7 +249,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen h-full bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-white p-6">
+    <div className="min-h-screen h-full bg-[#dcfce7] dark:bg-gray-900 text-gray-800 dark:text-white p-6">
       <header className="mb-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
           <div>
@@ -261,7 +258,7 @@ const Dashboard = () => {
               Total Tracked Time: {formatDuration(totalDuration)}
             </p>
           </div>
-          <div className="mt-4 sm:mt-0">
+          <div className="mt-4 sm:mt-0 flex flex-col sm:flex-row items-start sm:items-center gap-3">
             <select
               value={timeRange}
               onChange={e => setTimeRange(e.target.value)}
@@ -276,18 +273,12 @@ const Dashboard = () => {
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* Category Chart */}
         <CategoryChart timeRange={timeRange} />
-
-        {/* Productivity Trends */}
         <ProductivityTrendChart timeRange={timeRange} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* Sunburst Hierarchy Chart */}
         <SunburstChart timeRange={timeRange} />
-
-        {/* Traditional Bar Chart for comparison */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
           <ActivityHeatmap timeRange={timeRange} />
         </div>

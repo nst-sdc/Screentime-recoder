@@ -13,7 +13,7 @@ const BarChart = ({
 
   if (!data || data.length === 0) {
     return (
-      <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+      <div className="text-center py-12 text-gray-500 dark:text-gray-200">
         <FaChartBar className="mx-auto text-4xl mb-3 opacity-50" />
         <p className="text-lg font-medium">No activity data available</p>
         <p className="text-sm mt-1">
@@ -180,7 +180,7 @@ const BarChart = ({
                 <div
                   className={`text-xs font-medium mb-1 transition-opacity ${isHovered
                     ? "opacity-100"
-                    : "opacity-0 group-hover:opacity-100"} text-gray-700 dark:text-gray-300`}
+                    : "opacity-0 group-hover:opacity-100"} text-gray-500 dark:text-gray-300`}
                 >
                   {formatTime(item.minutes)}
                 </div>}
