@@ -1,0 +1,40 @@
+name: Heatmap Component Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'client/src/components/charts/ActivityHeatmap.jsx'
+      - 'client/src/utils/heatmapUtils.js'
+      - 'client/src/hooks/useActivityHeatmap.js'
+      - 'client/src/__tests__/**'
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: client/package-lock.json
+    
+    - name: Install dependencies
+      working-directory: ./client
+      run: npm ci
+    
+    - name: Run tests
+      working-directory: ./client
+      run: npm test -- --coverage --testPathPattern=heatmap
+    
+    - name: Upload coverage
+      uses: codecov/codecov-action@v3
+      with:
+        files: ./client/coverage/lcov.info
+        flags: heatmap
