@@ -448,6 +448,146 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       sendResponse({ activeTabs: currentTabs });
       return true;
 
+    // Reminder management messages
+    case 'GET_REMINDERS':
+      chrome.storage.local.get({ reminders: [] }, (result) => {
+        sendResponse({ reminders: result.reminders || [] });
+      });
+      return true;
+
+    case 'CREATE_REMINDER':
+      (async () => {
+        try {
+          const rem = message.reminder;
+          if (!rem || !rem.intervalMin) {
+            sendResponse({ success: false, error: 'invalid_reminder' });
+            return;
+          }
+
+          const id = `r_${Date.now()}`;
+          const newRem = Object.assign({
+            id,
+            label: rem.label || 'Reminder',
+            intervalMin: Number(rem.intervalMin) || 25,
+            enabled: rem.enabled === undefined ? true : !!rem.enabled,
+            nextTrigger: Date.now() + (Number(rem.intervalMin) || 25) * 60000
+          }, rem);
+
+          const { reminders = [] } = await new Promise((resolve) =>
+            chrome.storage.local.get({ reminders: [] }, resolve)
+          );
+
+          const updated = [newRem, ...reminders];
+          chrome.storage.local.set({ reminders: updated }, () => {
+            scheduleReminder(newRem);
+            // play a short confirmation sound so user knows reminder is set
+            try {
+              playReminderSound(600);
+            } catch (e) {
+              console.warn('Could not play confirmation sound', e);
+            }
+            try {
+              chrome.notifications.create(`reminder_created_${id}`, {
+                type: 'basic',
+                title: 'Reminder set',
+                message: `Will remind every ${newRem.intervalMin} minute(s): ${newRem.label}`
+              }, () => {});
+            } catch (nerr) {
+              console.warn('Could not create creation notification', nerr);
+            }
+            sendResponse({ success: true, reminder: newRem });
+          });
+        } catch (err) {
+          console.error('CREATE_REMINDER error', err);
+          sendResponse({ success: false, error: err && err.message });
+        }
+      })();
+      return true;
+
+    case 'DELETE_REMINDER':
+      (async () => {
+        try {
+          const id = message.id;
+          const { reminders = [] } = await new Promise((resolve) =>
+            chrome.storage.local.get({ reminders: [] }, resolve)
+          );
+          const updated = reminders.filter(r => r.id !== id);
+          chrome.storage.local.set({ reminders: updated }, () => {
+            chrome.alarms.clear(`reminder_${id}`);
+            // close any open popup window for this reminder
+            try { closeReminderWindow(id); } catch (e) {}
+            sendResponse({ success: true });
+          });
+        } catch (err) {
+          sendResponse({ success: false, error: err && err.message });
+        }
+      })();
+      return true;
+
+    case 'TOGGLE_REMINDER':
+      (async () => {
+        try {
+          const id = message.id;
+          const { reminders = [] } = await new Promise((resolve) =>
+            chrome.storage.local.get({ reminders: [] }, resolve)
+          );
+          const updated = reminders.map(r => {
+            if (r.id === id) {
+              const newR = Object.assign({}, r, { enabled: !!message.enabled });
+              if (newR.enabled) {
+                newR.nextTrigger = Date.now() + (newR.intervalMin || 25) * 60000;
+                scheduleReminder(newR);
+                try { closeReminderWindow(id); } catch (e) {}
+              } else {
+                chrome.alarms.clear(`reminder_${id}`);
+                try { closeReminderWindow(id); } catch (e) {}
+              }
+              return newR;
+            }
+            return r;
+          });
+          chrome.storage.local.set({ reminders: updated }, () => sendResponse({ success: true }));
+        } catch (err) {
+          sendResponse({ success: false, error: err && err.message });
+        }
+      })();
+      return true;
+
+    case 'DISMISS_REMINDER':
+      try {
+        const id = message.id;
+        try { chrome.action.setBadgeText({ text: '' }); } catch (e) {}
+        try { closeReminderWindow(id); } catch (e) {}
+        sendResponse({ success: true });
+      } catch (e) {
+        sendResponse({ success: false, error: e && e.message });
+      }
+      return true;
+
+    case 'SNOOZE_REMINDER':
+      (async () => {
+        try {
+          const id = message.id;
+          const mins = Number(message.minutes) || 5;
+          const { reminders = [] } = await new Promise((resolve) => chrome.storage.local.get({ reminders: [] }, resolve));
+          const updated = reminders.map(r => {
+            if (r.id === id) {
+              const nr = Object.assign({}, r, { nextTrigger: Date.now() + mins * 60000 });
+              scheduleReminder(nr);
+              return nr;
+            }
+            return r;
+          });
+          chrome.storage.local.set({ reminders: updated }, () => {
+            try { closeReminderWindow(id); } catch (e) {}
+            sendResponse({ success: true });
+          });
+        } catch (err) {
+          sendResponse({ success: false, error: err && err.message });
+        }
+      })();
+      return true;
+
     case 'CLOSE_TAB':
       if (sender.tab?.id) {
         chrome.tabs.remove(sender.tab.id);
@@ -482,6 +622,239 @@ chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => 
     return true;
   }
 });
+
+// ---------------- Reminders scheduling and notifications ----------------
+
+// Offscreen audio helpers
+async function ensureOffscreenDocument() {
+  try {
+    if (!chrome.offscreen || !chrome.offscreen.hasDocument) return false;
+    const has = await chrome.offscreen.hasDocument();
+    if (!has) {
+      await chrome.offscreen.createDocument({
+        url: 'offscreen.html',
+        reasons: ['AUDIO_PLAYBACK'],
+        justification: 'Play reminder sounds for user notifications.'
+      });
+    }
+    return true;
+  } catch (err) {
+    console.warn('Offscreen document not available:', err);
+    return false;
+  }
+}
+
+async function playReminderSound(durationMs = 1200) {
+  try {
+    const hasOffscreen = await ensureOffscreenDocument();
+    if (hasOffscreen) {
+      chrome.runtime.sendMessage({ type: 'PLAY_SOUND', duration: durationMs });
+      // schedule close after audio should have finished
+      setTimeout(() => {
+        try {
+          if (chrome.offscreen && chrome.offscreen.hasDocument) {
+            chrome.offscreen.hasDocument().then((has) => {
+              if (has && chrome.offscreen.closeDocument) {
+                chrome.offscreen.closeDocument();
+              }
+            }).catch(() => {});
+          }
+        } catch (e) {
+          // ignore
+        }
+      }, durationMs + 500);
+    } else {
+      // Fallback: create a short notification so the user sees something
+      try {
+        chrome.notifications.create(`notif_fallback_${Date.now()}`, {
+          type: 'basic',
+          title: 'Reminder',
+          message: 'Reminder — check focus',
+        }, () => {});
+      } catch (e) {
+        console.warn('Fallback notification failed', e);
+      }
+    }
+  } catch (err) {
+    console.error('playReminderSound error', err);
+  }
+}
+
+// Map to track popup windows opened for reminders
+const reminderWindows = new Map();
+
+function openReminderWindow(reminder) {
+  try {
+    // If a window for this reminder already exists, focus it
+    if (reminderWindows.has(reminder.id)) {
+      const existingId = reminderWindows.get(reminder.id);
+      try { chrome.windows.update(existingId, { focused: true }); } catch (e) {}
+      return;
+    }
+
+    const url = chrome.runtime.getURL(`reminder_popup.html?id=${encodeURIComponent(reminder.id)}&label=${encodeURIComponent(reminder.label)}`);
+    chrome.windows.create({ url, type: 'popup', focused: true, width: 360, height: 220 }, (win) => {
+      if (win && win.id) {
+        reminderWindows.set(reminder.id, win.id);
+      }
+    });
+  } catch (err) {
+    console.warn('openReminderWindow failed', err);
+  }
+}
+
+function closeReminderWindow(reminderId) {
+  try {
+    const winId = reminderWindows.get(reminderId);
+    if (winId) {
+      chrome.windows.remove(winId, () => {
+        // ignore errors
+      });
+      reminderWindows.delete(reminderId);
+    }
+  } catch (err) {
+    // ignore
+  }
+}
+
+function scheduleReminder(reminder) {
+  if (!reminder || !reminder.id) return;
+  if (!reminder.enabled) {
+    chrome.alarms.clear(`reminder_${reminder.id}`);
+    return;
+  }
+
+  const now = Date.now();
+  let delayMin = 0;
+  if (reminder.nextTrigger && Number(reminder.nextTrigger) > now) {
+    delayMin = Math.max(0.1, (Number(reminder.nextTrigger) - now) / 60000);
+  } else {
+    delayMin = Math.max(0.1, Number(reminder.intervalMin) || 25);
+  }
+
+  try {
+    chrome.alarms.create(`reminder_${reminder.id}`, {
+      delayInMinutes: delayMin,
+      periodInMinutes: Number(reminder.intervalMin) || 25
+    });
+    console.log(`Scheduled reminder ${reminder.id} in ${delayMin}m repeating ${reminder.intervalMin}m`);
+    try { chrome.notifications.create(`reminder_scheduled_${reminder.id}`, { type: 'basic', title: 'Reminder scheduled', message: `${reminder.label} every ${reminder.intervalMin}m` }, () => {}); } catch(e){}
+  } catch (err) {
+    console.error('Failed to schedule alarm', err);
+  }
+}
+
+async function loadAndScheduleAllReminders() {
+  chrome.storage.local.get({ reminders: [] }, (result) => {
+    const reminders = result.reminders || [];
+    reminders.forEach(r => {
+      if (r.enabled) scheduleReminder(r);
+    });
+  });
+}
+
+chrome.alarms.onAlarm.addListener((alarm) => {
+  console.log('Alarm fired:', alarm && alarm.name);
+  try {
+    if (!alarm || !alarm.name) return;
+    if (alarm.name.startsWith('reminder_')) {
+      const id = alarm.name.replace('reminder_', '');
+      chrome.storage.local.get({ reminders: [] }, (result) => {
+        const rem = (result.reminders || []).find(r => r.id === id);
+        if (!rem) return;
+
+        // Create notification
+        const title = rem.label || 'Study Reminder';
+        const message = `Time for: ${rem.label || 'break/work'} — next in ${rem.intervalMin} minutes`;
+        const options = {
+          type: 'basic',
+          title,
+          message,
+          requireInteraction: true,
+          silent: false
+        };
+
+        try {
+          const notifId = `notif_${id}_${Date.now()}`;
+          chrome.notifications.create(notifId, options, () => {});
+          // set a visible badge on the extension icon to draw attention
+          try { chrome.action.setBadgeText({ text: '!' }); chrome.action.setBadgeBackgroundColor({ color: '#dc2626' }); } catch (e) {}
+        } catch (nerr) {
+          console.warn('Notification error', nerr);
+        }
+
+        // Open a visible popup window (strong attention) and play sound there
+        try {
+          openReminderWindow(rem);
+        } catch (e) {
+          console.warn('Could not open reminder window', e);
+        }
+
+        // Play reminder sound (attempt offscreen WebAudio)
+        try {
+          playReminderSound(1400);
+        } catch (e) {
+          console.warn('Could not play reminder sound', e);
+        }
+
+        // Update nextTrigger in storage
+        const updated = (result.reminders || []).map(r => {
+          if (r.id === id) {
+            return Object.assign({}, r, { nextTrigger: Date.now() + (Number(r.intervalMin) || 25) * 60000 });
+          }
+          return r;
+        });
+        chrome.storage.local.set({ reminders: updated });
+      });
+    }
+  } catch (err) {
+    console.error('Alarm handler error', err);
+  }
+});
+
+// Clear badge when notification clicked or cleared
+chrome.notifications.onClicked.addListener((notificationId) => {
+  try { chrome.action.setBadgeText({ text: '' }); } catch (e) {}
+  // Close any reminder windows and focus active tab
+  try {
+    for (const [rid, winId] of reminderWindows.entries()) {
+      try { chrome.windows.remove(winId); } catch (e) {}
+      reminderWindows.delete(rid);
+    }
+  } catch (e) {}
+  // optionally focus the active tab so user sees something
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    if (tabs && tabs[0] && tabs[0].id) {
+      try { chrome.windows.update(tabs[0].windowId, { focused: true }); } catch (e) {}
+      try { chrome.tabs.update(tabs[0].id, { active: true }); } catch (e) {}
+    }
+  });
+});
+
+chrome.notifications.onClosed.addListener((notificationId, byUser) => {
+  try { chrome.action.setBadgeText({ text: '' }); } catch (e) {}
+});
+
+// Clean up reminderWindows map if a window is removed directly
+chrome.windows.onRemoved.addListener((windowId) => {
+  try {
+    for (const [rid, winId] of reminderWindows.entries()) {
+      if (winId === windowId) {
+        reminderWindows.delete(rid);
+      }
+    }
+  } catch (e) {
+    // ignore
+  }
+});
+
+// Ensure reminders are scheduled on startup/installed
+chrome.runtime.onInstalled.addListener(() => {
+  loadAndScheduleAllReminders();
+});
+
+// Also attempt to schedule when service worker starts
+loadAndScheduleAllReminders();
 
 async function endAllActiveSessions() {
   const promises = Array.from(activeTabs.keys()).map(tabId =>

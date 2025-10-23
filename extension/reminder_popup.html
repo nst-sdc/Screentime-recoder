@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Reminder</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 0; padding: 12px; background: #fff; color:#111 }
+      .container { display:flex; flex-direction:column; gap:8px }
+      .label { font-weight:700; font-size:16px }
+      .sub { color:#555; font-size:13px }
+      .actions { margin-top:8px; display:flex; gap:8px }
+      button { padding:8px 12px; border-radius:6px; border:1px solid #ccc; background:#f3f4f6; cursor:pointer }
+      button.primary { background:#2563eb; color:white; border:none }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="label" id="remLabel">Reminder</div>
+      <div class="sub">Click Dismiss to stop the alarm</div>
+      <div class="actions">
+        <button id="dismissBtn" class="primary">Dismiss</button>
+        <button id="snoozeBtn">Snooze 5m</button>
+      </div>
+    </div>
+    <script src="reminder_popup.js"></script>
+  </body>
+</html>

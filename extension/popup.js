@@ -88,6 +88,88 @@ document.addEventListener("DOMContentLoaded", () => {
       checkAuthStatus();
     }
   });
+  
+  // Reminders UI bindings
+  const remLabel = document.getElementById('remLabel');
+  const remInterval = document.getElementById('remInterval');
+  const addReminderBtn = document.getElementById('addReminderBtn');
+  const remindersList = document.getElementById('remindersList');
+
+  if (addReminderBtn) {
+    addReminderBtn.addEventListener('click', async () => {
+      const label = remLabel.value.trim() || 'Focus Reminder';
+      const interval = Number(remInterval.value) || 25;
+      addReminderBtn.disabled = true;
+      try {
+        const res = await chrome.runtime.sendMessage({ type: 'CREATE_REMINDER', reminder: { label, intervalMin: interval, enabled: true } });
+        if (res && res.success) {
+          remLabel.value = '';
+          remInterval.value = '25';
+          loadReminders();
+        } else {
+          console.warn('Failed to create reminder', res);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        addReminderBtn.disabled = false;
+      }
+    });
+  }
+
+  async function loadReminders() {
+    try {
+      const res = await chrome.runtime.sendMessage({ type: 'GET_REMINDERS' });
+      const reminders = (res && res.reminders) || [];
+      if (!reminders || reminders.length === 0) {
+        remindersList.innerHTML = '<div>No reminders yet</div>';
+        return;
+      }
+
+      remindersList.innerHTML = reminders.map(r => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #e5e7eb;">
+          <div style="flex:1">
+            <div class="text-bold">${escapeHtml(r.label)}</div>
+            <div class="text-small">Every ${r.intervalMin} minutes</div>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <input type="checkbox" data-id="${r.id}" ${r.enabled ? 'checked' : ''} class="rem-toggle" />
+            <button data-id="${r.id}" class="btn btn-small btn-danger rem-delete">Delete</button>
+          </div>
+        </div>
+      `).join('');
+
+      // Bind toggles and deletes
+      Array.from(document.getElementsByClassName('rem-toggle')).forEach(el => {
+        el.addEventListener('change', async (e) => {
+          const id = e.target.getAttribute('data-id');
+          const enabled = e.target.checked;
+          await chrome.runtime.sendMessage({ type: 'TOGGLE_REMINDER', id, enabled });
+        });
+      });
+
+      Array.from(document.getElementsByClassName('rem-delete')).forEach(el => {
+        el.addEventListener('click', async (e) => {
+          const id = e.target.getAttribute('data-id');
+          if (!confirm('Delete this reminder?')) return;
+          await chrome.runtime.sendMessage({ type: 'DELETE_REMINDER', id });
+          loadReminders();
+        });
+      });
+
+    } catch (err) {
+      console.error('Failed to load reminders', err);
+      remindersList.innerHTML = '<div style="color:#dc2626;">Error loading reminders</div>';
+    }
+  }
+
+  function escapeHtml(s) {
+    if (!s) return '';
+    return s.replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"})[c]);
+  }
+
+  // Initial load
+  loadReminders();
 });
 
 async function checkAuthStatus() {
