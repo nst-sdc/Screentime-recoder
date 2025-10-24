@@ -268,6 +268,12 @@ const Dashboard = () => {
               <option value="week">This Week</option>
               <option value="month">This Month</option>
             </select>
+            <button
+              onClick={() => navigate('/reminders')}
+              className="ml-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            >
+              Manage Reminders
+            </button>
           </div>
         </div>
       </header>
