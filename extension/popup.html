@@ -246,6 +246,23 @@
         <div>Loading active tabs...</div>
       </div>
     </div>
+    <div class="card">
+      <div class="section-title">Reminders</div>
+      <div class="section">
+        <label class="text-small">Label</label>
+        <input id="remLabel" type="text" placeholder="e.g., Focus Session" style="width:100%;padding:8px;margin-top:6px;border-radius:6px;border:1px solid #e5e7eb;" />
+      </div>
+      <div class="section">
+        <label class="text-small">Interval (minutes)</label>
+        <input id="remInterval" type="number" min="1" value="25" style="width:100%;padding:8px;margin-top:6px;border-radius:6px;border:1px solid #e5e7eb;" />
+      </div>
+      <div class="section">
+        <button id="addReminderBtn" class="btn btn-primary">Add Reminder</button>
+      </div>
+      <div class="section">
+        <div id="remindersList" class="info-content">Loading reminders...</div>
+      </div>
+    </div>
     <script src="popup.js"></script>
   </body>
 </html>
