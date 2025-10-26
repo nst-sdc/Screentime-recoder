@@ -65,7 +65,12 @@ export const AuthProvider = ({ children }) => {
         try {
           const res = await axios.get('/auth/verify');
           setUser(res.data.data);
-          setIsAuthenticated(true);
+          // Only consider authenticated if the user's email is verified
+          if (res.data.data && res.data.data.isEmailVerified) {
+            setIsAuthenticated(true);
+          } else {
+            setIsAuthenticated(false);
+          }
         } catch (err) {
           logout();
         }
@@ -79,8 +84,11 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const urlToken = urlParams.get('token');
+    const path = window.location.pathname || '';
 
-    if (urlToken) {
+    // Only treat a token query param as an auth JWT when on the OAuth success callback route.
+    // This prevents other links (like email verification tokens) from being misinterpreted as JWTs.
+    if (urlToken && (path === '/auth/success' || path.startsWith('/auth/success'))) {
       setToken(urlToken);
       localStorage.setItem('token', urlToken);
 
@@ -99,21 +107,14 @@ export const AuthProvider = ({ children }) => {
       const res = await axios.post('/auth/register', userData);
       
       if (res.data.success) {
-        const jwt = res.data.token;
-        const userData = res.data.data;
-
-        localStorage.setItem('token', jwt);
-        setToken(jwt);
-        axios.defaults.headers.common['Authorization'] = `Bearer ${jwt}`;
-
-        setUser(userData);
-        setIsAuthenticated(true);
-        sendTokenToExtension(jwt);
-        
+        // Don't automatically store or use the token returned on registration.
+        // Registration returns a token for convenience but storing it would allow
+        // immediate authenticated access before email verification. Instead,
+        // only show a success message and require the user to verify their email
+        // and then sign in.
         return res.data;
-      } else {
-        throw new Error(res.data.message || 'Registration failed');
       }
+      throw new Error(res.data.message || 'Registration failed');
     } catch (err) {
       if (err.response?.data?.message) {
         throw new Error(err.response.data.message);
@@ -141,12 +142,12 @@ export const AuthProvider = ({ children }) => {
 
         const userRes = await axios.get('/auth/verify');
         setUser(userRes.data.data);
-        setIsAuthenticated(true);
-        
+        // only mark authenticated if email is verified
+        if (userRes.data.data.isEmailVerified) setIsAuthenticated(true);
+
         return res.data;
-      } else {
-        throw new Error(res.data.message || 'Login failed');
       }
+      throw new Error(res.data.message || 'Login failed');
     } catch (err) {
       if (err.response?.data?.message) {
         throw new Error(err.response.data.message);
@@ -156,6 +157,18 @@ export const AuthProvider = ({ children }) => {
         throw new Error('Login failed. Please try again.');
       }
     }
+  };
+
+  const resendVerification = async (email) => {
+    return axios.post('/auth/resend-verification', { email });
+  };
+
+  const forgotPassword = async (email) => {
+    return axios.post('/auth/forgot-password', { email });
+  };
+
+  const resetPassword = async (token, email, password) => {
+    return axios.post(`/auth/reset-password?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`, { password });
   };
 
   const logout = async () => {

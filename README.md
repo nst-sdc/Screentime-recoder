@@ -2,6 +2,29 @@
 
 ---
 
+### ✉️ Email verification & password reset (new)
+
+This project now includes email verification for local registrations and password reset flows.
+
+Environment variables (add to `.env` in project root or server .env):
+
+- EMAIL_HOST - SMTP host (e.g. smtp.gmail.com)
+- EMAIL_PORT - SMTP port (e.g. 587)
+- EMAIL_SECURE - 'true' if using TLS/SSL (usually false for 587)
+- EMAIL_USER - SMTP username
+- EMAIL_PASS - SMTP password
+- EMAIL_FROM - From address (optional)
+- CLIENT_URL - Frontend URL (e.g. http://localhost:5173)
+
+How it works:
+- After local registration, a verification email is sent with a time-limited link.
+- Users must verify their email before logging in (local provider).
+- Users can request a password reset; a time-limited link will be emailed.
+
+Testing locally without SMTP:
+- You can omit EMAIL_HOST to skip sending emails; tokens are still generated and stored.
+
+
 ### 🧠 Project Overview
 
 The **Screen Time Recorder** helps users track and improve their actual study time by analysing screen content. The app runs in the background and uses AI to detect focus, identify difficult topics, and provide contextual support to help users study more effectively.

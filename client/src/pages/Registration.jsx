@@ -53,7 +53,8 @@ const Registration = () => {
         email: formData.email,
         password: formData.password
       });
-      navigate("/dashboard");
+      // after registration user should verify email before accessing dashboard
+      setError('Registration successful. Please verify your email before logging in.');
     } catch (error) {
       setError(error.message || "Registration failed. Please try again.");
     } finally {

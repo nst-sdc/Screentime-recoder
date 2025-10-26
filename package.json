@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server/server.js",
-    "dev": "nodemon server/server.js"
+    "dev": "nodemon server/server.js",
+    "test": "NODE_ENV=test jest --runInBand"
   },
   "type": "module",
   "keywords": [],
@@ -22,7 +23,13 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.16.0",
     "nodemon": "^3.1.10",
+    "nodemailer": "^6.9.4",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0"
   }
+  ,
+  "devDependencies": {
+    "jest": "^29.6.1"
+  }
+
 }
