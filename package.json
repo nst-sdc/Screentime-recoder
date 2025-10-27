@@ -5,7 +5,10 @@
   "main": "server.js",
   "scripts": {
     "start": "node server/server.js",
-    "dev": "nodemon server/server.js"
+    "dev": "nodemon server/server.js",
+    "test": "node --experimental-vm-modules node_modules/.bin/jest",
+    "test:watch": "node --experimental-vm-modules node_modules/.bin/jest --watch",
+    "test:coverage": "node --experimental-vm-modules node_modules/.bin/jest --coverage"
   },
   "type": "module",
   "keywords": [],
@@ -24,5 +27,11 @@
     "nodemon": "^3.1.10",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0"
+  },
+  "devDependencies": {
+    "@jest/globals": "^29.7.0",
+    "jest": "^29.7.0",
+    "mongodb-memory-server": "^9.5.0",
+    "supertest": "^6.3.4"
   }
 }
