@@ -163,7 +163,7 @@ const Registration = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-4 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white font-semibold rounded-lg transition-colors duration-300 shadow-lg hover:shadow-xl flex items-center justify-center"
+              className="w-full py-4 bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 disabled:bg-green-400 dark:disabled:bg-green-800/50 text-white font-semibold rounded-lg transition-colors duration-300 shadow-lg hover:shadow-xl flex items-center justify-center"
             >
               {isLoading ? (
                 <>

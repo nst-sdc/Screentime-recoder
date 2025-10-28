@@ -65,6 +65,44 @@ button.toggle-password:focus-visible {
   box-shadow: none !important;
 }
 
+/* Ensure button text visibility and proper contrast in both themes */
+/* Links and buttons with green or blue backgrounds should have white text */
+a.bg-green-600,
+a.bg-blue-600,
+a.bg-green-700,
+a.bg-blue-700,
+button.bg-green-600,
+button.bg-blue-600 {
+  color: white !important;
+}
+
+a.bg-green-600:hover,
+a.bg-blue-600:hover,
+button.bg-green-600:hover,
+button.bg-blue-600:hover {
+  color: white !important;
+}
+
+/* Ensure icons inside buttons are white */
+a.bg-green-600 svg,
+a.bg-blue-600 svg,
+a.bg-green-700 svg,
+a.bg-blue-700 svg,
+button.bg-green-600 svg,
+button.bg-blue-600 svg {
+  color: white !important;
+}
+
+a.bg-green-600 svg path,
+a.bg-blue-600 svg path,
+a.bg-green-700 svg path,
+a.bg-blue-700 svg path,
+button.bg-green-600 svg path,
+button.bg-blue-600 svg path {
+  color: white !important;
+  fill: white !important;
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
