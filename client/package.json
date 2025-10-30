@@ -19,7 +19,7 @@
     "react-dom": "^18.2.0",
     "react-icons": "^5.5.0",
     "react-router-dom": "^6.30.1",
-    "screentime-recoder": "file:.."
+    "screentime-recorder": "file:.."
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.6.0",
