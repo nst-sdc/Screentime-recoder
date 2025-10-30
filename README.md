@@ -74,10 +74,38 @@ The **Screen Time Recorder** helps users track and improve their actual study ti
 
 ### 🔐 Authentication
 
+#### User Authentication
 - JSON Web Tokens (JWT) + Google OAuth
 - User sessions for tracking and saving focus data
 - Secure password hashing and session management
 - Role-based support planned for future (students/admins)
+
+#### API Key Authentication
+- All API endpoints require a valid API key
+- API keys must be included in request headers: `X-API-Key: your_api_key`
+- Requests without valid API keys will receive 401 Unauthorized response
+- API keys can be obtained by contacting the system administrator
+- Keep your API key secure and never share it publicly
+
+Example API Request:
+```bash
+curl -X GET 'https://api.screentime-recorder.com/v1/activity' \
+-H 'X-API-Key: your_api_key'
+```
+
+Response without API key or invalid key:
+```json
+{
+  "error": "Unauthorized",
+  "message": "Invalid or missing API key"
+}
+```
+
+For security reasons:
+- Store API keys securely (use environment variables)
+- Rotate API keys periodically
+- Do not commit API keys to version control
+- Use different API keys for development and production
 
 ---
 

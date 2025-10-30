@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-dotenv.config({ path: "./.env" });
+dotenv.config();
 import express from "express";
 import cors from "cors";
 import session from "express-session";
@@ -11,6 +11,7 @@ import trackingRouter from "./routes/tracking.route.js";
 import activityRouter from "./routes/activity.route.js";
 import domainRouter from "./routes/domain.route.js";
 import healthRouter from "./routes/health.route.js";
+import validateApiKey from "./middleware/apiKey.middleware.js";
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -43,7 +44,7 @@ app.use(
     origin: allowedOrigins,
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"]
+    allowedHeaders: ["Content-Type", "Authorization", "X-API-Key"]
   })
 );
 app.use(express.json());
@@ -61,12 +62,12 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.use("/api/users", userRouter);
+// Public routes
 app.use("/api/auth", authRouter);
-app.use("/api/tracking", trackingRouter);
-app.use("/api/activity", activityRouter);
-app.use("/api/domain", domainRouter);
 app.use("/api", healthRouter);
+
+// Protected routes requiring API key
+app.use("/api/test-protected", validateApiKey, staticTestRouter);
 
 app.get("/api/health", (req, res) => {
   res.status(200).json({ message: "Server is running!" });
