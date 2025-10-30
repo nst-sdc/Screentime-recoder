@@ -88,7 +88,7 @@ export const AuthProvider = ({ children }) => {
 
     // Only treat a token query param as an auth JWT when on the OAuth success callback route.
     // This prevents other links (like email verification tokens) from being misinterpreted as JWTs.
-    if (urlToken && (path === '/auth/success' || path.startsWith('/auth/success'))) {
+    if (urlToken && path.startsWith('/auth/success')) {
       setToken(urlToken);
       localStorage.setItem('token', urlToken);
 
