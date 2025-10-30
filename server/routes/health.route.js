@@ -53,15 +53,17 @@ export default router;
 
 // DEV-only: send a test email to verify SMTP configuration
 // POST /api/health/send-test-email  { to: 'you@domain.com' }
-router.post('/health/send-test-email', async (req, res) => {
-  const { to } = req.body;
-  if (!to) return res.status(400).json({ success: false, message: 'to field required' });
+if (process.env.NODE_ENV !== 'production') {
+  router.post('/health/send-test-email', async (req, res) => {
+    const { to } = req.body;
+    if (!to) return res.status(400).json({ success: false, message: 'to field required' });
 
-  try {
-    await sendEmail({ to, subject: 'Test email from Screentime Recorder', text: 'This is a test email.' });
-    return res.json({ success: true, message: `Test email sent to ${to}` });
-  } catch (err) {
-    console.error('send-test-email error', err);
-    return res.status(500).json({ success: false, message: 'Failed to send test email', error: err.message });
-  }
-});
+    try {
+      await sendEmail({ to, subject: 'Test email from Screentime Recorder', text: 'This is a test email.' });
+      return res.json({ success: true, message: `Test email sent to ${to}` });
+    } catch (err) {
+      console.error('send-test-email error', err);
+      return res.status(500).json({ success: false, message: 'Failed to send test email', error: err.message });
+    }
+  });
+}
