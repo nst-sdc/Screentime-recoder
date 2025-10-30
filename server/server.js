@@ -76,6 +76,10 @@ app.use((req, res) => {
   res.status(404).json({ error: "Route not found" });
 });
 
-app.listen(port, "0.0.0.0", () => {
-  console.log(`Server listening on ${port}`);
-});
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(port, '0.0.0.0', () => {
+    console.log(`Server listening on ${port}`);
+  });
+}
+
+export default app;

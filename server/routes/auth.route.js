@@ -4,6 +4,10 @@ import { verifyToken, isAuthenticated } from "../middleware/auth.js";
 import {
   register,
   login,
+  verifyEmail,
+  resendVerification,
+  forgotPassword,
+  resetPassword,
   googleSuccess,
   googleFailure,
   getProfile,
@@ -36,6 +40,10 @@ router.get(
 router.get("/google/failure", googleFailure);
 
 router.get("/verify", verifyToken, verifyTokenController);
+router.get('/verify-email', verifyEmail);
+router.post('/resend-verification', resendVerification);
+router.post('/forgot-password', forgotPassword);
+router.post('/reset-password', resetPassword);
 router.get("/profile", verifyToken, getProfile);
 router.put("/profile", verifyToken, updateProfile);
 router.delete("/account", verifyToken, deleteAccount);
