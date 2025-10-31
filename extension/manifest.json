@@ -3,7 +3,7 @@
   "name": "Screentime Recorder Extension",
   "version": "1.0",
   "description": "Tracks screentime and sends data to the web app.",
-  "permissions": ["storage", "tabs", "activeTab", "scripting"],
+  "permissions": ["storage", "tabs", "activeTab", "scripting", "alarms", "notifications"],
   "host_permissions": ["<all_urls>"],
   "externally_connectable": {
     "matches": [
