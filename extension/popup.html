@@ -1,251 +1,257 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Screentime Recorder</title>
-    <style>
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
 
-      body {
-        width: 320px;
-        padding: 20px;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          sans-serif;
-        background-color: #f3f4f6;
-        color: #374151;
-      }
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Screentime Recorder</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-      .header {
-        text-align: center;
-        margin-bottom: 20px;
-      }
+    body {
+      width: 320px;
+      padding: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        sans-serif;
+      background-color: #f3f4f6;
+      color: #374151;
+    }
 
-      .header h1 {
-        color: #1f2937;
-        font-size: 18px;
-        margin: 0;
-        font-weight: 600;
-      }
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
 
-      .card {
-        background: white;
-        padding: 16px;
-        border-radius: 8px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        margin-bottom: 16px;
-      }
+    .header h1 {
+      color: #1f2937;
+      font-size: 18px;
+      margin: 0;
+      font-weight: 600;
+    }
 
-      .status-indicator {
-        display: flex;
-        align-items: center;
-        margin-bottom: 12px;
-      }
+    .card {
+      background: white;
+      padding: 16px;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      margin-bottom: 16px;
+    }
 
-      .status-dot {
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        margin-right: 8px;
-      }
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      margin-bottom: 12px;
+    }
 
-      .status-dot.active {
-        background-color: #10b981;
-      }
+    .status-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
 
-      .status-dot.inactive {
-        background-color: #ef4444;
-      }
+    .status-dot.active {
+      background-color: #10b981;
+    }
 
-      .status-dot.warning {
-        background-color: #f59e0b;
-      }
+    .status-dot.inactive {
+      background-color: #ef4444;
+    }
 
-      .status-info {
-        font-size: 12px;
-        color: #6b7280;
-        margin-top: 12px;
-      }
+    .status-dot.warning {
+      background-color: #f59e0b;
+    }
 
-      .section {
-        margin-bottom: 12px;
-      }
+    .status-info {
+      font-size: 12px;
+      color: #6b7280;
+      margin-top: 12px;
+    }
 
-      .section.hidden {
-        display: none;
-      }
+    .section {
+      margin-bottom: 12px;
+    }
 
-      .btn {
-        width: 100%;
-        padding: 10px 16px;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 14px;
-        font-weight: 500;
-        margin-top: 8px;
-        transition: all 0.2s ease;
-      }
+    .section.hidden {
+      display: none;
+    }
 
-      .btn-primary {
-        background-color: #2563eb;
-        color: white;
-      }
+    .btn {
+      width: 100%;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      margin-top: 8px;
+      transition: all 0.2s ease;
+    }
 
-      .btn-primary:hover {
-        background-color: #1d4ed8;
-      }
+    .btn-primary {
+      background-color: #2563eb;
+      color: white;
+    }
 
-      .btn-danger {
-        background-color: #dc2626;
-        color: white;
-      }
+    .btn-primary:hover {
+      background-color: #1d4ed8;
+    }
 
-      .btn-danger:hover {
-        background-color: #b91c1c;
-      }
+    .btn-danger {
+      background-color: #dc2626;
+      color: white;
+    }
 
-      .btn-small {
-        padding: 6px 12px;
-        font-size: 12px;
-      }
+    .btn-danger:hover {
+      background-color: #b91c1c;
+    }
 
-      .btn-blue {
-        background-color: #2563eb;
-        color: white;
-      }
+    .btn-small {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
 
-      .btn-blue:hover {
-        background-color: #1d4ed8;
-      }
+    .btn-blue {
+      background-color: #2563eb;
+      color: white;
+    }
 
-      .card-blue {
-        background-color: #eff6ff;
-        border: 1px solid #dbeafe;
-      }
+    .btn-blue:hover {
+      background-color: #1d4ed8;
+    }
 
-      .text-blue {
-        color: #1d4ed8;
-      }
+    .card-blue {
+      background-color: #eff6ff;
+      border: 1px solid #dbeafe;
+    }
 
-      .text-small {
-        font-size: 12px;
-      }
+    .text-blue {
+      color: #1d4ed8;
+    }
 
-      .text-bold {
-        font-weight: 600;
-      }
+    .text-small {
+      font-size: 12px;
+    }
 
-      .info-content {
-        font-size: 12px;
-        color: #2563eb;
-        margin-top: 8px;
-      }
+    .text-bold {
+      font-weight: 600;
+    }
 
-      .info-content.hidden {
-        display: none;
-      }
+    .info-content {
+      font-size: 12px;
+      color: #2563eb;
+      margin-top: 8px;
+    }
 
-      .debug-content {
-        font-size: 12px;
-        color: #6b7280;
-        margin-top: 8px;
-      }
+    .info-content.hidden {
+      display: none;
+    }
 
-      .debug-content.hidden {
-        display: none;
-      }
+    .debug-content {
+      font-size: 12px;
+      color: #6b7280;
+      margin-top: 8px;
+    }
 
-      .activity-item {
-        border-bottom: 1px solid #e5e7eb;
-        padding: 4px 0;
-        margin-bottom: 4px;
-      }
+    .debug-content.hidden {
+      display: none;
+    }
 
-      .activity-item:last-child {
-        border-bottom: none;
-        margin-bottom: 0;
-      }
+    .activity-item {
+      border-bottom: 1px solid #e5e7eb;
+      padding: 4px 0;
+      margin-bottom: 4px;
+    }
 
-      .domain {
-        font-family: "Monaco", "Menlo", monospace;
-        font-size: 12px;
-        font-weight: 600;
-      }
+    .activity-item:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+    }
 
-      .duration {
-        font-size: 11px;
-        color: #6b7280;
-      }
+    .domain {
+      font-family: "Monaco", "Menlo", monospace;
+      font-size: 12px;
+      font-weight: 600;
+    }
 
-      .title {
-        font-size: 11px;
-        color: #9ca3af;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
+    .duration {
+      font-size: 11px;
+      color: #6b7280;
+    }
 
-      .test-section {
-        margin-top: 10px;
-        padding-top: 10px;
-        border-top: 1px solid #e5e7eb;
-      }
+    .title {
+      font-size: 11px;
+      color: #9ca3af;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
-      .test-btn {
-        margin-bottom: 4px;
-      }
+    .test-section {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid #e5e7eb;
+    }
 
-      .section-title {
-        font-size: 12px;
-        font-weight: 600;
-        margin-bottom: 8px;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="header">
-      <h1>Screentime Recorder</h1>
+    .test-btn {
+      margin-bottom: 4px;
+    }
+
+    .section-title {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <h1>Screentime Recorder</h1>
+  </div>
+
+  <div class="card">
+    <div class="status-indicator">
+      <div class="status-dot" id="statusDot"></div>
+      <span id="statusText">Checking status...</span>
     </div>
-
-    <div class="card">
-      <div class="status-indicator">
-        <div class="status-dot" id="statusDot"></div>
-        <span id="statusText">Checking status...</span>
-      </div>
-      <div class="status-info" id="statusInfo">
-        Extension is monitoring your activity
-      </div>
+    <div class="status-info" id="statusInfo">
+      Extension is monitoring your activity
     </div>
+  </div>
 
-    <div class="card">
-      <div id="loginSection" class="section hidden">
-        <p class="section">Sign in to sync your data:</p>
-        <button type="button" class="btn btn-primary" id="loginBtn">
-          Login to Web App
-        </button>
-      </div>
-
-      <div id="loggedInSection" class="section hidden">
-        <p class="section">Logged in successfully!</p>
-        <button type="button" class="btn btn-danger" id="logoutBtn">
-          Logout
-        </button>
-      </div>
-    </div>
-    <div class="card card-blue">
-      <div class="section-title text-blue">Active Tracking:</div>
-      <button type="button" class="btn btn-small btn-blue" id="activeTabsBtn">
-        View Active Tabs
+  <div class="card">
+    <div id="loginSection" class="section hidden">
+      <p class="section">Sign in to sync your data:</p>
+      <button type="button" class="btn btn-primary" id="loginBtn">
+        Login to Web App
       </button>
-      <div id="activeTabsInfo" class="info-content hidden">
-        <div>Loading active tabs...</div>
-      </div>
     </div>
-    <script src="popup.js"></script>
-  </body>
+
+    <div id="loggedInSection" class="section hidden">
+      <p class="section">Logged in successfully!</p>
+      <button type="button" class="btn btn-primary" id="dashboardBtn">
+        Go to Dashboard
+      </button>
+      <button type="button" class="btn btn-danger" id="logoutBtn">
+        Logout
+      </button>
+    </div>
+  </div>
+  <div class="card card-blue">
+    <div class="section-title text-blue">Active Tracking:</div>
+    <button type="button" class="btn btn-small btn-blue" id="activeTabsBtn">
+      View Active Tabs
+    </button>
+    <div id="activeTabsInfo" class="info-content hidden">
+      <div>Loading active tabs...</div>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+
 </html>
