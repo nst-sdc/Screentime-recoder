@@ -1,4 +1,4 @@
-let statusDot, statusText, statusInfo, loginSection, loggedInSection, loginBtn, logoutBtn;
+let statusDot, statusText, statusInfo, loginSection, loggedInSection, loginBtn, logoutBtn, dashboardBtn;
 
 document.addEventListener("DOMContentLoaded", () => {
   statusDot = document.getElementById("statusDot");
@@ -8,12 +8,23 @@ document.addEventListener("DOMContentLoaded", () => {
   loggedInSection = document.getElementById("loggedInSection");
   loginBtn = document.getElementById("loginBtn");
   logoutBtn = document.getElementById("logoutBtn");
+  dashboardBtn = document.getElementById("dashboardBtn");
+
+  if (dashboardBtn) {
+    dashboardBtn.addEventListener("click", () => {
+      chrome.tabs.create({ url: "https://screentime-recoder.vercel.app/dashboard" });
+    });
+  }
 
   if (loginBtn) {
     loginBtn.addEventListener("click", () => {
-      chrome.tabs.create({
-        url: "http://localhost:5173/login",
-      });
+
+      // For local development
+      // chrome.tabs.create({
+      //   url: "http://localhost:5173/login",
+      // });
+
+      // For production
       chrome.tabs.create({ url: "https://screentime-recoder.vercel.app/login" });
     });
   }
@@ -28,7 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
               target: { tabId: tabs[0].id },
               func: () => {
                 localStorage.removeItem("token");
-                window.location.href = "http://localhost:5173/dashboard";
+                window.location.href = "https://screentime-recoder.vercel.app/dashboard";
               },
             });
           }
