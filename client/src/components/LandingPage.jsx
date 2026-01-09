@@ -69,16 +69,16 @@ const LandingPage = () => {
           <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link
               to="/register"
-              className="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3 rounded-full shadow-lg hover:scale-105 transition"
+              className="bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 text-white font-semibold px-6 py-3 rounded-full shadow-lg hover:scale-105 transition-colors duration-200"
             >
               Get Started
             </Link>
             <a
               href="/extension.zip"
               download="screentime-recorder-extension.zip"
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-full shadow-lg hover:scale-105 transition flex items-center gap-2"
+              className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white font-semibold px-6 py-3 rounded-full shadow-lg hover:scale-105 transition-colors duration-200 flex items-center gap-2"
             >
-              <FaLaptopCode className="text-lg" />
+              <FaLaptopCode className="text-lg text-white" />
               Download Extension
             </a>
           </div>
@@ -132,9 +132,9 @@ const LandingPage = () => {
             <a
               href="/extension.zip"
               download="screentime-recorder-extension.zip"
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-4 rounded-full shadow-lg hover:scale-105 transition flex items-center gap-3 text-lg"
+              className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white font-semibold px-8 py-4 rounded-full shadow-lg hover:scale-105 transition-colors duration-200 flex items-center gap-3 text-lg"
             >
-              <FaLaptopCode className="text-xl" />
+              <FaLaptopCode className="text-xl text-white" />
               Download Extension
             </a>
             <div className="text-sm text-gray-500 dark:text-gray-400">
@@ -186,16 +186,16 @@ const LandingPage = () => {
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
           <Link
             to="/register"
-            className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-full font-medium transition"
+            className="bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 text-white px-6 py-3 rounded-full font-medium transition-colors duration-200"
           >
             Create Free Account
           </Link>
           <a
             href="/extension.zip"
             download="screentime-recorder-extension.zip"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full font-medium transition flex items-center gap-2"
+            className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white px-6 py-3 rounded-full font-medium transition-colors duration-200 flex items-center gap-2"
           >
-            <FaLaptopCode />
+            <FaLaptopCode className="text-white" />
             Get Extension
           </a>
         </div>
