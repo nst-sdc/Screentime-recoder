@@ -105,9 +105,9 @@ const Dashboard = () => {
       avgProductivity:
         cat.productivity.length > 0
           ? parseFloat(
-              (cat.productivity.reduce((a, b) => a + b, 0) /
-                cat.productivity.length).toFixed(1)
-            )
+            (cat.productivity.reduce((a, b) => a + b, 0) /
+              cat.productivity.length).toFixed(1)
+          )
           : 5.0,
       color: getCategoryColor(cat.category)
     }));
@@ -289,12 +289,13 @@ const Dashboard = () => {
           <h2 className="text-md font-semibold mb-2">
             Recent Activity Summary
           </h2>
-          <div className="h-48 overflow-y-auto">
+          <div className="h-96 overflow-y-auto">
             <AppList
               data={summary}
               showProductivity={true}
-              maxItems={8}
-              sortBy="duration"
+              maxItems={10}
+              sortBy="lastVisit"
+              compact={true}
             />
           </div>
         </div>
