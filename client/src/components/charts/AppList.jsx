@@ -242,21 +242,30 @@ const AppList = ({
   data = [],
   showProductivity = true,
   maxItems = 10,
-  sortBy: initialSortBy = "duration"
+  sortBy: initialSortBy = "duration",
+  compact = false
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState(initialSortBy);
   const [sortOrder, setSortOrder] = useState("desc");
   const [filterBy, setFilterBy] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
 
-  // Process and filter data
+
+  const categories = useMemo(() => {
+    if (!data) return [];
+    const cats = new Set(data.map(item => item.categoryName || "Uncategorized"));
+    return Array.from(cats).sort();
+  }, [data]);
+
+
   const processedData = useMemo(
     () => {
       try {
         if (!Array.isArray(data) || data.length === 0) return [];
 
         let filtered = data.map((item, index) => {
-          // Ensure productivity is a valid number
+
           const rawProductivity =
             item.productivity || item.avgProductivityScore || 5;
           const productivity =
@@ -275,7 +284,7 @@ const AppList = ({
           };
         });
 
-        // Apply search filter
+
         if (searchTerm) {
           filtered = filtered.filter(
             item =>
@@ -284,7 +293,7 @@ const AppList = ({
           );
         }
 
-        // Apply productivity filter
+
         if (filterBy !== "all") {
           filtered = filtered.filter(item => {
             const level = getProductivityLevel(item.productivity);
@@ -292,7 +301,12 @@ const AppList = ({
           });
         }
 
-        // Apply sorting
+
+        if (categoryFilter !== "all") {
+          filtered = filtered.filter(item => item.categoryName === categoryFilter);
+        }
+
+
         filtered.sort((a, b) => {
           let comparison = 0;
 
@@ -312,6 +326,9 @@ const AppList = ({
             case "lastVisit":
               comparison = new Date(b.lastVisit) - new Date(a.lastVisit);
               break;
+            case "category":
+              comparison = (a.categoryName || "").localeCompare(b.categoryName || "");
+              break;
             default:
               comparison = b.duration - a.duration;
           }
@@ -325,7 +342,7 @@ const AppList = ({
         return [];
       }
     },
-    [data, searchTerm, sortBy, sortOrder, filterBy, maxItems]
+    [data, searchTerm, sortBy, sortOrder, filterBy, categoryFilter, maxItems]
   );
 
   const toggleSort = () => {
@@ -347,59 +364,80 @@ const AppList = ({
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row gap-3 pb-4 border-b border-gray-200 dark:border-gray-700">
-        <div className="relative flex-1">
-          <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
-          <input
-            type="text"
-            placeholder="Search domains or categories..."
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
+        {!compact && (
+          <div className="relative flex-1">
+            <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
+            <input
+              type="text"
+              placeholder="Search domains or categories..."
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+        )}
+        {compact && <div className="flex-1 font-medium text-sm text-gray-500 dark:text-gray-400">Latest Updates</div>}
 
-        {/* Sort */}
-        <div className="flex gap-2">
+
+        <div className="flex gap-2 flex-wrap">
+          {/* Category Filter - Always visible if compact or not */}
           <select
-            value={sortBy}
-            onChange={e => setSortBy(e.target.value)}
+            value={categoryFilter}
+            onChange={e => setCategoryFilter(e.target.value)}
             className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
           >
-            <option value="duration">Duration</option>
-            <option value="sessions">Sessions</option>
-            <option value="productivity">Productivity</option>
-            <option value="domain">Domain</option>
-            <option value="lastVisit">Last Visit</option>
+            <option value="all">All Categories</option>
+            {categories.map(cat => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
           </select>
 
-          <button
-            onClick={toggleSort}
-            className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 focus:ring-2 focus:ring-blue-500"
-            title={`Sort ${sortOrder === "desc" ? "Ascending" : "Descending"}`}
-          >
-            <FaSort
-              className={`transform transition-transform ${sortOrder === "asc"
-                ? "rotate-180"
-                : ""}`}
-            />
-          </button>
-        </div>
+          {/* Productivity Filter */}
+          {showProductivity && (
+            <select
+              value={filterBy}
+              onChange={e => setFilterBy(e.target.value)}
+              className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">All Levels</option>
+              <option value="high">High Prod.</option>
+              <option value="medium">Medium Prod.</option>
+              <option value="low">Low Prod.</option>
+            </select>
+          )}
 
-        {/* Filter */}
-        {showProductivity &&
-          <select
-            value={filterBy}
-            onChange={e => setFilterBy(e.target.value)}
-            className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="all">All Productivity</option>
-            <option value="high">High (8-10)</option>
-            <option value="medium">Medium (5-7)</option>
-            <option value="low">Low (1-4)</option>
-          </select>}
+          {!compact && (
+            <>
+              <select
+                value={sortBy}
+                onChange={e => setSortBy(e.target.value)}
+                className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="duration">Duration</option>
+                <option value="sessions">Sessions</option>
+                <option value="productivity">Prod. Score</option>
+                <option value="domain">Domain</option>
+                <option value="category">Category</option>
+                <option value="lastVisit">Last Visit</option>
+              </select>
+
+              <button
+                onClick={toggleSort}
+                className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 focus:ring-2 focus:ring-blue-500"
+                title={`Sort ${sortOrder === "desc" ? "Ascending" : "Descending"}`}
+              >
+                <FaSort
+                  className={`transform transition-transform ${sortOrder === "asc"
+                    ? "rotate-180"
+                    : ""}`}
+                />
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
-      {/* Results count */}
+
       <div className="flex justify-between items-center text-sm text-gray-500 dark:text-gray-400">
         <span>
           Showing {processedData.length} of {data.length} activities
@@ -415,84 +453,84 @@ const AppList = ({
           </span>}
       </div>
 
-      {/* Activity list */}
+
       {processedData.length === 0
         ? <div className="text-center py-6 text-gray-500 dark:text-gray-400">
-            <FaFilter className="mx-auto text-2xl mb-2 opacity-50" />
-            <p>No activities match your search criteria</p>
-            <button
-              onClick={() => {
-                setSearchTerm("");
-                setFilterBy("all");
-              }}
-              className="mt-2 text-blue-600 dark:text-blue-400 hover:underline text-sm"
-            >
-              Clear filters
-            </button>
-          </div>
+          <FaFilter className="mx-auto text-2xl mb-2 opacity-50" />
+          <p>No activities match your search criteria</p>
+          <button
+            onClick={() => {
+              setSearchTerm("");
+              setFilterBy("all");
+            }}
+            className="mt-2 text-blue-600 dark:text-blue-400 hover:underline text-sm"
+          >
+            Clear filters
+          </button>
+        </div>
         : <div className="space-y-2">
-            {processedData.map((item, idx) => {
-              const icon = getIconForDomain(item.domain);
-              const productivityLevel = getProductivityLevel(item.productivity);
-              const productivityColors = getProductivityColors(
-                productivityLevel
-              );
+          {processedData.map((item, idx) => {
+            const icon = getIconForDomain(item.domain);
+            const productivityLevel = getProductivityLevel(item.productivity);
+            const productivityColors = getProductivityColors(
+              productivityLevel
+            );
 
-              return (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group"
-                >
-                  <div className="flex items-center space-x-3 flex-1 min-w-0">
-                    <div className="flex-shrink-0 text-xl">
-                      {icon}
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <p className="font-medium text-gray-900 dark:text-white truncate">
-                          {item.domain}
-                        </p>
-                        {showProductivity &&
-                          <span
-                            className={`px-2 py-0.5 text-xs font-medium rounded-full border ${productivityColors}`}
-                          >
-                            {typeof item.productivity === "number"
-                              ? item.productivity.toFixed(1)
-                              : "5.0"}
-                          </span>}
-                      </div>
-
-                      <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
-                        <span className="flex items-center gap-1">
-                          <FaClock className="text-xs" />
-                          {formatDuration(item.duration)}
-                        </span>
-                        <span>
-                          {item.sessions} session{item.sessions !== 1 ? "s" : ""}
-                        </span>
-                        {item.categoryName &&
-                          <span className="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs">
-                            {item.categoryName}
-                          </span>}
-                      </div>
-                    </div>
+            return (
+              <div
+                key={item.id}
+                className="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group"
+              >
+                <div className="flex items-center space-x-3 flex-1 min-w-0">
+                  <div className="flex-shrink-0 text-xl">
+                    {icon}
                   </div>
 
-                  <div className="flex-shrink-0 text-right">
-                    <div className="text-lg font-semibold text-gray-900 dark:text-white">
-                      {formatDuration(item.duration)}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="font-medium text-gray-900 dark:text-white truncate">
+                        {item.domain}
+                      </p>
+                      {showProductivity &&
+                        <span
+                          className={`px-2 py-0.5 text-xs font-medium rounded-full border ${productivityColors}`}
+                        >
+                          {typeof item.productivity === "number"
+                            ? item.productivity.toFixed(1)
+                            : "5.0"}
+                        </span>}
                     </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">
-                      {new Date(item.lastVisit).toLocaleDateString()}
+
+                    <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+                      <span className="flex items-center gap-1">
+                        <FaClock className="text-xs" />
+                        {formatDuration(item.duration)}
+                      </span>
+                      <span>
+                        {item.sessions} session{item.sessions !== 1 ? "s" : ""}
+                      </span>
+                      {item.categoryName &&
+                        <span className="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs">
+                          {item.categoryName}
+                        </span>}
                     </div>
                   </div>
                 </div>
-              );
-            })}
-          </div>}
 
-      {/* Show more button */}
+                <div className="flex-shrink-0 text-right">
+                  <div className="text-lg font-semibold text-gray-900 dark:text-white">
+                    {formatDuration(item.duration)}
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    {new Date(item.lastVisit).toLocaleDateString()}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>}
+
+
       {data.length > maxItems &&
         processedData.length === maxItems &&
         <div className="text-center pt-4">
